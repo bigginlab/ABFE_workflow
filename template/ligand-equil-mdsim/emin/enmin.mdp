@@ -1,0 +1,71 @@
+;====================================================
+; Energy minimization
+;====================================================
+
+;----------------------------------------------------
+; HEADER
+;----------------------------------------------------
+title                  = EnergyMin-Steep
+
+;----------------------------------------------------
+; RUN CONTROL & MINIMIZATION
+;----------------------------------------------------
+define                 = -DFLEXIBLE
+integrator             = steep ; Steepest descent emin
+nsteps                 = 10000 ; Max number of steps to be performed
+emtol                  = 100   ; Stop minimization when max force < value [KJ.mol^-1.nm^-1]
+emstep                 = 0.01  ; Initial step-size [nm]
+nstcomm                = 100  ; COM removal frequency [steps]
+pbc                    = xyz   ; Periodic boundary conditions (all directions)
+
+;----------------------------------------------------
+; OUTPUT CONTROL
+;----------------------------------------------------
+; TRR control
+nstxout                = 250    ; .trr write frequency [steps | 0 is never] 
+nstvout                = 0      ; .trr vel frequency [steps | 0 is never]
+nstfout                = 0      ; .trr frc frequency [steps | 0 is never]
+; XTC control
+nstxout-compressed     = 500    ; .xtc write frequency [steps]
+compressed-x-precision = 1000   ; .xtc precision [default = 1000]
+nstlog                 = 500    ; .log write frequency
+nstenergy              = 500    ; energy write frequency
+nstcalcenergy          = 100    ; energy calc frequency [only relevant in MD]
+
+;----------------------------------------------------
+; NEIGHBORLIST OPTIONS
+;----------------------------------------------------
+cutoff-scheme          = Verlet ; This is pretty much the only option
+ns-type                = grid   ; Neighbourlist determination method
+nstlist                = 20      ; Neighbourlist and long range force update frequency [default: 10]
+rlist                  = 1.2    ; Cut-off distance for short-range neighbourlist
+
+;----------------------------------------------------
+; BONDS
+;----------------------------------------------------
+constraints            = none   ; Type of constraints (h-bonds for 2 fs integration)
+
+;----------------------------------------------------
+; ELECTROSTATICS
+;----------------------------------------------------
+coulombtype            = PME    ; Long range electrostatics treatment
+rcoulomb               = 1.0    ; Electrostatics cutoff distance [nm]
+pme-order              = 4      ; PME order [4 for GPU PME]
+fourierspacing         = 0.10   ; In the name [default: 0.12 nm]
+ewald-rtol             = 1e-6   ; Rel strength of Ewald-shift direct potential [default: 1e-5]
+
+;----------------------------------------------------
+; VDW
+;----------------------------------------------------
+vdwtype                 = Cut-off ; Type of VDW handling
+rvdw                    = 1.0     ; Cutoff distance [nm]
+verlet-buffer-tolerance = 0.005
+vdw-modifier            = Potential-Shift-Verlet ; Shift potential so zero at cutoff
+DispCorr                = EnerPres ; Apply long range dispersion corr for Ener and Pres
+
+;----------------------------------------------------
+; TEMPERATURE & PRESSURE COUPL
+;----------------------------------------------------
+tcoupl              = no        ; No temperature (emin)
+pcoupl              = no        ; No pressure (emin)
+gen-vel             = no        ; No velocities (emin)

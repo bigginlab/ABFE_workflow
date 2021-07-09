@@ -1,0 +1,31 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=6
+#SBATCH --gres=gpu:1
+#SBATCH --gres-flags=enforce-binding
+#SBATCH --time=144:00:00
+#SBATCH -J FEP-lig
+#SBATCH -p gpu-biggin4
+#SBATCH --array=1-22
+
+wd=$PWD
+
+source /etc/profile.d/modules.sh
+module load use.own
+module load apps/gromacs/2019.1-GPU-CUDA10
+
+let index=${SLURM_ARRAY_TASK_ID}-1
+
+cd vdw.${index}
+  # Set up directory
+  sub_wd=$PWD
+  for stage in em nvt npt npt-norest prod
+  do
+    cd ${stage}
+    ./${stage}.bash
+    wait
+    cd $sub_wd
+  done
+cd $wd
+
