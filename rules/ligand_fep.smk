@@ -90,6 +90,7 @@ rule gather_ligand_xvg:
     input:
         xvg_loc=expand("data/sims/{{ligand}}/{{run}}/ligand/fep/simulation/{state}/prod/prod.xvg",
                        state=ligand_windows)
+        # need to add gro input
     params:
         sub_loc="data/sims/{ligand}/{run}/ligand/fep/simulation",
         vdw_max_windows=3,
