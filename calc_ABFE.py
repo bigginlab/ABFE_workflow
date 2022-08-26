@@ -7,8 +7,8 @@ if __name__ == "__main__":
     orig_dir = os.getcwd()
     
     # IO:
-    out_root_path = orig_dir+"/data/ligand1"
-    in_root_path =orig_dir+"/data/input/ligand1"
+    out_root_path = orig_dir+"/data/system1"
+    in_root_path =orig_dir+"/data/input/system1"
 
     input_ligand_paths = [in_root_path+"/"+dir for dir in os.listdir(in_root_path)]
     print("input ligand dirs: ", input_ligand_paths)
