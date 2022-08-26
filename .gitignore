@@ -1,0 +1,9 @@
+#python gedoens
+__pycache__
+*.pyc
+
+#snake fun
+.snakemake
+Snakemake
+
+data/*
