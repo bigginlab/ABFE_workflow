@@ -1,0 +1,88 @@
+;====================================================
+; NVT equilibration
+;====================================================
+
+;----------------------------------------------------
+; HEADER
+;----------------------------------------------------
+title        = NVT-heat
+
+;----------------------------------------------------
+; RUN CONTROL
+;----------------------------------------------------
+define       = -DPOSRES      ; Enable restraints
+integrator   = sd            ; Langevin integrator
+ld-seed      = -1            ; Langevin seed [-1]
+nsteps       = 250000        ; 4 * 250,000 fs = 1 ns (system is big)
+tinit        = 0             ; Start time
+dt           = 0.004         ; 4 fs
+pbc          = xyz           ; Periodic boundary conditions
+comm-mode    = Linear        ; remove center of mass translation
+nstcomm      = 50            ; frequency for center of mass motion removal
+
+;----------------------------------------------------
+; OUTPUT CONTROL
+;----------------------------------------------------
+; TRR options
+nstxout                = 0          ; don't save coordinates to .trr
+nstvout                = 0          ; don't save velocities to .trr
+nstfout                = 0          ; don't save forces to .trr
+; XTC options
+nstxout-compressed     = 2500       ; xtc write frequency [steps]
+compressed-x-precision = 1000       ; xtc precision [default]
+; Log & energy file options
+nstlog                 = 2500       ; log update frequency [steps]
+nstenergy              = 2500       ; energy update frequency [steps]
+nstcalcenergy          = 50         ; calculate energies every 100 steps
+
+;----------------------------------------------------
+; BONDS
+;----------------------------------------------------
+constraint_algorithm   = lincs      ; holonomic constraints
+constraints            = all-bonds  ; hydrogens only are constrained
+lincs-iter             = 1          ; lincs corr iterations [1]
+lincs-order            = 6          ; highest order in expansions [4]
+lincs-warnangle        = 30         ; maximum angle rot of bond [30]
+continuation           = no         ; formerly known as 'unconstrained-start' - useful for exact continuations and reruns
+
+;----------------------------------------------------
+; NEIGHBOR SEARCHING
+;----------------------------------------------------
+cutoff-scheme   = Verlet
+ns-type         = grid   ; search neighboring grid cells
+nstlist         = 10     ; with verlet this is a minimum
+rlist           = 1.2    ; short-range neighborlist cutoff (in nm)
+
+;----------------------------------------------------
+; ELECTROSTATICS
+;----------------------------------------------------
+coulombtype      = PME      ; Long range electrostatics treatment
+rcoulomb         = 1.0      ; Electrostatics cutoff [nm]
+ewald_geometry   = 3d       ; Ewald sum is performed in all 3Ds
+pme-order        = 4        ; interpolation order for PME [4]
+fourierspacing   = 0.10     ; grid spacing for FFT [0.12 nm]
+ewald-rtol       = 1e-6     ; relative strength of the Ewald-shifted direct potential at rcoulomb [1e-5]
+
+;----------------------------------------------------
+; VDW
+;----------------------------------------------------
+vdwtype                 = Cut-off  ; Type of VDW handling
+rvdw                    = 1.0      ; Cutoff distance [nm]
+vdw-modifier            = Potential-Shift-Verlet  ; Shift potential so zero energy at cutoff
+DispCorr                = EnerPres ; Apply long range dispersion corr for Ener and Pres
+
+;----------------------------------------------------
+; TEMPERATURE & PRESSURE COUPL
+;----------------------------------------------------
+tc-grps          = System ; Treat everything as a single group
+tau-t            = 2.0    ; Inverse friction with sd
+ref-t            = 298.15 ; Set temp at 298.15 K
+pcoupl           = no    ; No pressure coupling
+
+;----------------------------------------------------
+; VELOCITY GENERATION
+;----------------------------------------------------
+gen-vel      = yes      ; Velocity generation is on (if gen_vel is 'yes', continuation should be 'no')
+gen-seed     = -1       ; Use random seed
+gen-temp     = 10       ; Start temp low and let the system catch up
+
