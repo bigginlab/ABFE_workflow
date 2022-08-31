@@ -3,7 +3,7 @@ from abfe import template
 run_path = config["run_path"]
 input_path = config['input_data_path']
 
-rule setup_ligand:
+rule equil_setup_ligand:
     input:
         input_path+"/ligand"
     params:

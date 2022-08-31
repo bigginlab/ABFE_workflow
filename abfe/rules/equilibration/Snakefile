@@ -1,5 +1,4 @@
-run_path = config["run_path"]
-        
+       
 #Setup: Build dir structure of equil
 include: 'ligand_equil_setup.smk'
 include: 'complex_equil_setup.smk'
@@ -9,8 +8,10 @@ include: 'complex_equil_setup.smk'
 include: 'ligand_equil.smk'
 include: 'complex_equil.smk'
  
+#Final Check Job
+run_path = config["run_path"]
 
-rule equilib:
+rule equil_results:
     input:
         gro_complex=run_path+"/complex/equil-mdsim/boreschcalc/ClosestRestraintFrame.gro",
         top_complex=run_path+"/complex/equil-mdsim/boreschcalc/BoreschRestraint.top",

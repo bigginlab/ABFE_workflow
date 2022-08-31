@@ -3,7 +3,7 @@ from abfe import scripts
 run_path = config["run_path"]
 num_sim_threads = config['num_sim_threads']
 
-rule run_complex_min:
+rule equil_run_complex_emin:
     input:
         top=run_path+"/complex/topology/complex.top",
         gro=run_path+"/complex/topology/complex.gro",
@@ -19,7 +19,7 @@ rule run_complex_min:
             gmx mdrun -deffnm {params.run_dir}/emin -ntmpi {threads}
         '''
 
-rule run_complex_heat:
+rule equil_run_complex_nvt_heat:
     input:
         top=run_path+"/complex/topology/complex.top",
         gro=run_path+"/complex/equil-mdsim/emin/emin.gro"
@@ -36,7 +36,7 @@ rule run_complex_heat:
             gmx mdrun -deffnm {params.run_dir}/nvt_heat -ntmpi {threads}
         '''
 
-rule run_complex_equil1:
+rule equil_run_complex_npt_eq1:
     input:
         top=run_path+"/complex/topology/complex.top",
         gro=run_path+"/complex/equil-mdsim/nvt_heat/nvt_heat.gro",
@@ -54,7 +54,7 @@ rule run_complex_equil1:
             gmx mdrun -deffnm {params.run_dir}/npt_equil1 -ntmpi {threads}
         '''
 
-rule run_complex_equil2:
+rule equil_run_complex_npt_eq2:
     input:
         top=run_path+"/complex/topology/complex.top",
         gro=run_path+"/complex/equil-mdsim/npt_equil1/npt_equil1.gro",
@@ -72,7 +72,7 @@ rule run_complex_equil2:
             gmx mdrun -deffnm {params.run_dir}/npt_equil2 -ntmpi {threads}
         '''
 
-rule run_complex_prod:
+rule equil_run_complex_prod:
     input:
         top=run_path+"/complex/topology/complex.top",
         gro=run_path+"/complex/equil-mdsim/npt_equil2/npt_equil2.gro",
@@ -91,7 +91,7 @@ rule run_complex_prod:
             gmx mdrun -deffnm {params.run_dir}/npt_prod1 -ntmpi {threads}
         '''
 
-rule run_trjconv:
+rule equil_run_trjconv:
     input:
         tpr=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod1.tpr",
         xtc=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod1.xtc"
@@ -110,7 +110,7 @@ rule run_trjconv:
             rm {params.run_dir}/whole.xtc {params.run_dir}/nojump.xtc
         '''
 
-rule run_boresch:
+rule equil_run_get_boresch_restraints:
     input:
         tpr=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod1.tpr",
         xtc=run_path+"/complex/equil-mdsim/boreschcalc/npt_prod1_center.xtc"

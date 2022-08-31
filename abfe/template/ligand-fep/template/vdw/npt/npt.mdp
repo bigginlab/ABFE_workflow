@@ -94,4 +94,4 @@ nstdhdl                  = 100
 dhdl-print-energy        = total
 calc-lambda-neighbors    = -1
 separate-dhdl-file       = yes
-couple-intramol          = no
+couple-intramol          = yes

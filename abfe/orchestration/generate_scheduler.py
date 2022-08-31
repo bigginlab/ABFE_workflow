@@ -27,7 +27,7 @@ class scheduler():
         
         return self.out_scheduler_path
         
-    def generate_job_file(self, out_prefix, cluster_conf_path:str, cluster=False,num_jobs:int=1):
+    def generate_job_file(self, out_prefix, cluster_conf_path:str, cluster=False, num_jobs:int=1, latency_wait:int=60):
         if(cluster):
             root_dir = os.path.dirname(cluster_conf_path)
             slurm_logs = os.path.dirname(cluster_conf_path)+"/slurm_logs"
@@ -35,13 +35,13 @@ class scheduler():
             
             cluster_config ={
                 "partition": "cpu",
-                "time": "48:00",
+                "time": "48:00:00",
                 "cores": 8,
                 "mem": "20GB",
                 "chdir": root_dir,                
-                "job-name": str(out_prefix),
-                "output":  "\""+slurm_logs+"/"+str(out_prefix)+"_%j.out\"",
-                "error":  "\""+slurm_logs+"/"+str(out_prefix)+"_%j.err\""
+                "job-name": "\\\""+str(out_prefix)+".{name}.{jobid}\\\"",
+                "output":  "\\\""+slurm_logs+"/"+str(out_prefix)+"_{name}_{jobid}.out\\\"",
+                "error":  "\\\""+slurm_logs+"/"+str(out_prefix)+"_{name}_{jobid}.err\\\""
             }
             
             json.dump(cluster_config, open(cluster_conf_path, "w"), indent="  ")
@@ -49,13 +49,13 @@ class scheduler():
             
             file_str = "\n".join([
                 "#!/bin/env bash",
-                "snakemake --cluster \"sbatch "+cluster_options+"\" --cluster-config "+cluster_conf_path+" --jobs "+str(num_jobs)+" --latency-wait 10 --rerun-incomplete "
+                "snakemake --cluster \"sbatch "+cluster_options+"\" --cluster-config "+cluster_conf_path+" --jobs "+str(num_jobs)+" --latency-wait "+str(latency_wait)+" --rerun-incomplete "
             ])
             
         else:
             file_str = "\n".join([
                 "#!/bin/env bash",
-                "snakemake -c "+str(self.n_cores)+"  --latency-wait 10 --rerun-incomplete "
+                "snakemake -c "+str(self.n_cores)+"  --latency-wait "+str(latency_wait)+" --rerun-incomplete "
             ])
         
         file_io = open(self.out_job_path, "w")

@@ -3,7 +3,7 @@ from abfe import template
 run_path = config["run_path"]
 input_path = config['input_data_path']
 
-rule setup_complex:
+rule equil_setup_complex:
     input:
         input_path+"/complex"
     params:

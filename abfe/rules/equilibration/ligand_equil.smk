@@ -1,7 +1,7 @@
 run_path = config["run_path"]
 num_sim_threads = config['num_sim_threads']
 
-rule run_ligand_min:
+rule equil_run_ligand_emin:
     input:
         top=run_path+"/ligand/topology/ligand.top",
         gro=run_path+"/ligand/topology/ligand.gro"
@@ -17,7 +17,7 @@ rule run_ligand_min:
             gmx mdrun -deffnm {params.run_dir}/emin -ntmpi {threads}
         '''
 
-rule run_ligand_heat:
+rule equil_run_ligand_nvt_heat:
     input:
         top=run_path+"/ligand/topology/ligand.top",
         gro=run_path+"/ligand/equil-mdsim/emin/emin.gro"
@@ -34,7 +34,7 @@ rule run_ligand_heat:
             gmx mdrun -deffnm {params.run_dir}/nvt_heat -ntmpi {threads}
         '''
 
-rule run_ligand_equil1:
+rule equil_run_ligand_npt_eq1:
     input:
         top=run_path+"/ligand/topology/ligand.top",
         gro=run_path+"/ligand/equil-mdsim/nvt_heat/nvt_heat.gro",
@@ -52,7 +52,7 @@ rule run_ligand_equil1:
             gmx mdrun -deffnm {params.run_dir}/npt_equil1 -ntmpi {threads}
         '''
 
-rule run_ligand_equil2:
+rule equil_run_ligand_npt_eq2:
     input:
         top=run_path+"/ligand/topology/ligand.top",
         gro=run_path+"/ligand/equil-mdsim/npt_equil1/npt_equil1.gro",
