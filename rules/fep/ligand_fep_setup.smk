@@ -2,15 +2,15 @@ from abfe import template
 
 run_path = config["run_path"]
 ligand_windows = config["ligand_windows"]
-lam_coul_range = config['lam_coul_range']
+lam_coul_range = config['lam_coul_ligand_range']
+lam_vdw_range = config['lam_vdw_ligand_range']
 n_coul_windows = len(lam_coul_range)
-lam_vdw_range = config['lam_vdw_range']
 n_vdw_windows = len(lam_vdw_range)
 
-rule setup_fep_ligand:
+rule fep_setup_ligand:
     input:
         ligand_top=run_path+"/ligand/topology",
-        equil_gro=run_path+"/ligand/equil-mdsim/npt_equil2/npt_equil2.gro"
+        equil_gro=run_path+"/ligand/equil-mdsim/npt_equil2/npt_equil2.gro",
     params:
         sim_dir=run_path+"/ligand/fep",
         vdw_windows=n_vdw_windows,
@@ -36,7 +36,7 @@ rule setup_fep_ligand:
             mkdir -p {params.sim_dir}/simulation
            
             let max_window={params.vdw_windows}
-            for i in $(seq 0 ${{max_window}})
+            for i in $(seq 0 $((max_window-1)))
             do
                 mkdir -p {params.sim_dir}/simulation/vdw.${{i}}
                 cp -r {params.sim_dir}/template/vdw/* {params.sim_dir}/simulation/vdw.${{i}}
@@ -45,7 +45,7 @@ rule setup_fep_ligand:
             done
 
             let max_window={params.coul_windows}
-            for i in $(seq 0 ${{max_window}})
+            for i in $(seq 0 $((max_window-1)))
             do
                 mkdir -p {params.sim_dir}/simulation/coul.${{i}}
                 cp -r {params.sim_dir}/template/coul/* {params.sim_dir}/simulation/coul.${{i}}
@@ -54,4 +54,3 @@ rule setup_fep_ligand:
             done
 
         '''
-        
