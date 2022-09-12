@@ -52,16 +52,8 @@ def run_alchemlyb(xvgs: list, overlap_path: str = None, lower: int = None,
 
     for xvg in xvgs:
         extracted_dHdls = extract_dHdl(xvg, T=temperature)
-
-        
         df = slicing(extracted_dHdls, lower=lower,
                      upper=upper)
-        print("slice")
-        print(df.head())
-        
-        if(sum(df.iloc[:, 0]) ==0):
-            print("jump over: ", xvg)
-            continue
         
         df_ineff = statistical_inefficiency(df, series=df.iloc[:, 0])
 
