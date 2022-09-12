@@ -3,18 +3,18 @@ from abfe import template
 
 run_path = config["run_path"]
 complex_windows = config["complex_windows"]
-lam_rest_range = config['lam_rest_range']
+lam_rest_range = config['lam_rest_complex_range']
+lam_coul_range = config['lam_coul_complex_range']
+lam_vdw_range = config['lam_vdw_complex_range']
 n_rest_windows = len(lam_rest_range)
-lam_coul_range = config['lam_coul_range']
 n_coul_windows = len(lam_coul_range)
-lam_vdw_range = config['lam_vdw_range']
 n_vdw_windows = len(lam_vdw_range)
 
 rule fep_setup_complex:
     input:
         complex_top=run_path+"/complex/topology",
         boresch_top=run_path+"/complex/equil-mdsim/boreschcalc/BoreschRestraint.top",
-        boresch_gro=run_path+"/complex/equil-mdsim/boreschcalc/ClosestRestraintFrame.gro"
+        boresch_gro=run_path+"/complex/equil-mdsim/boreschcalc/ClosestRestraintFrame.gro",
     params:
         sim_dir=run_path+"/complex/fep",
         restraint_range=" ".join(map(str, lam_rest_range)),
@@ -42,7 +42,7 @@ rule fep_setup_complex:
             mkdir -p {params.sim_dir}/simulation
 
             let max_window={params.restraint_windows}
-            for i in $(seq 0 $((max_window-1)))
+            for i in $(seq 0 $((max_window)))
             do
                 mkdir -p {params.sim_dir}/simulation/restraints.${{i}}
                 cp -r {params.sim_dir}/template/restraints/* {params.sim_dir}/simulation/restraints.${{i}}

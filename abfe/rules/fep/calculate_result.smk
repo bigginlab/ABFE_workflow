@@ -2,8 +2,8 @@ run_path = config["run_path"]
 
 rule fep_gather_dGs:
     input:
-        complex_var=run_path+"/complex/ana/dg_results.csv",
-        ligand_var=run_path+"/ligand/ana/dg_results.csv"
+        complex_var=run_path+"/complex/fep/ana/dg_results.csv",
+        ligand_var=run_path+"/ligand/fep/ana/dg_results.csv"
     output:
         complex_dg=run_path+"/dg_complex_results.csv",
         ligand_dg=run_path+"/dg_ligand_results.csv"

@@ -3,7 +3,7 @@ import subprocess
 
 class scheduler():
     
-    def __init__(self, out_dir_path:str, n_cores:int, time:str="24:00:00", partition="cpu") -> None:
+    def __init__(self, out_dir_path:str, n_cores:int, time:str="96:00:00", partition="cpu") -> None:
         self.n_cores=n_cores
         self.out_dir_path = out_dir_path
         self.out_job_path = out_dir_path+"/job.sh"
@@ -36,7 +36,8 @@ class scheduler():
             cluster_config ={
                 "partition": "cpu",
                 "time": "48:00:00",
-                "cores": 8,
+                "cpus-per-task": '{threads}',
+                "cores-per-socket": '{threads}',
                 "mem": "20GB",
                 "chdir": root_dir,                
                 "job-name": "\\\""+str(out_prefix)+".{name}.{jobid}\\\"",

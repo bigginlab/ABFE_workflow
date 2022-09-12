@@ -5,8 +5,8 @@ include: 'complex_equil_setup.smk'
  
  
 #RUN: Equil
-include: 'ligand_equil.smk'
-include: 'complex_equil.smk'
+include: 'ligand_equil_simulation.smk'
+include: 'complex_equil_simulation.smk'
  
 #Final Check Job
 run_path = config["run_path"]

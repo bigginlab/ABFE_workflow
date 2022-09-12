@@ -1,9 +1,10 @@
 from abfe import scripts
 run_path = config["run_path"]
 complex_windows = config["complex_windows"]
-n_coul_windows = config['n_coul_windows']
-n_rest_windows = config['n_rest_windows']
-n_vdw_windows = config['n_vdw_windows']
+
+n_coul_windows = config['n_coul_windows_complex']
+n_rest_windows = config['n_rest_windows_complex']
+n_vdw_windows = config['n_vdw_windows_complex']
 
 
 #Ana
@@ -51,10 +52,11 @@ rule fep_ana_get_dg_complex:
     input:
         xvg_dir=run_path+"/complex/fep/ana/xvgs"
     params:
-        out_dir=run_path+"/complex/ana",
+        conf_path = run_path+"/snake_conf.json",
+        out_dir=run_path+"/complex/fep/ana",
         script_dir = scripts.root_path
     output:
-        complex_var=run_path+"/complex/ana/dg_results.csv"
+        complex_var=run_path+"/complex/fep/ana/dg_results.csv"
     shell:
-        "python {params.script_dir}/alchemlyb-analysis-complex.py --xvgpath {input.xvg_dir} --outpath {params.out_dir}"
+        "python {params.script_dir}/alchemlyb-analysis-complex.py --xvgpath {input.xvg_dir}  --confpath {params.conf_path} --outpath {params.out_dir}"
 

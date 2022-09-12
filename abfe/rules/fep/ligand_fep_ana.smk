@@ -2,9 +2,8 @@ from abfe import scripts
 
 run_path = config["run_path"]
 ligand_windows = config["ligand_windows"]
-num_sim_threads = config['num_sim_threads']
-n_coul_windows = config['n_coul_windows']
-n_vdw_windows = config['n_vdw_windows']
+n_coul_windows = config['n_coul_windows_ligand']
+n_vdw_windows = config['n_vdw_windows_ligand']
 
 
 # Ana
@@ -15,7 +14,7 @@ rule fep_ana_gather_ligand_xvg:
     params:
         sim_loc=run_path+"/ligand/fep/simulation",
         ana_loc=run_path+"/ligand/fep/ana",
-        vdw_max_windows=n_coul_windows,
+        vdw_max_windows=n_vdw_windows,
         coul_max_windows=n_coul_windows
     output:
         xvg_dir=directory(run_path+"/ligand/fep/ana/xvgs")
@@ -43,10 +42,10 @@ rule fep_ana_get_dg_ligand:
     input:
         xvg_dir=run_path+"/ligand/fep/ana/xvgs"
     params:
-        out_dir=run_path+"/ligand/ana",
+        conf_path = run_path+"/snake_conf.json",
+        out_dir=run_path+"/ligand/fep/ana",
         script_dir=scripts.root_path
     output:
-        complex_var=run_path+"/ligand/ana/dg_results.csv"
+        complex_var=run_path+"/ligand/fep/ana/dg_results.csv"
     shell:
-        "python {params.script_dir}/alchemlyb-analysis-ligand.py --xvgpath {input.xvg_dir} --outpath {params.out_dir}"
-        
+        "python {params.script_dir}/alchemlyb-analysis-ligand.py --xvgpath {input.xvg_dir} --confpath {params.conf_path} --outpath {params.out_dir}"
