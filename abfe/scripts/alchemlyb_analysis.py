@@ -54,7 +54,6 @@ def run_alchemlyb(xvgs: list, overlap_path: str = None, lower: int = None,
         extracted_dHdls = extract_dHdl(xvg, T=temperature)
         df = slicing(extracted_dHdls, lower=lower,
                      upper=upper)
-        
         df_ineff = statistical_inefficiency(df, series=df.iloc[:, 0])
 
         ineff_step = math.ceil(len(df) / len(df_ineff))

@@ -25,8 +25,8 @@ if __name__ == "__main__":
     conf = json.load(open(args.confpath,"r"))
     system_steps_windows = {
         "restraints-xvg": conf['n_rest_windows_complex'],
-        'vdw-xvg':conf['n_vdw_windows_ligand'],
-        'coul-xvg': conf['n_coul_windows_ligand']
+        'vdw-xvg':conf['n_vdw_windows_complex'],
+        'coul-xvg': conf['n_coul_windows_complex']
     }
 
     res_df = analyze_ligand(prefix=args.xvgpath, 
