@@ -1,6 +1,6 @@
 run_path = config["run_path"]
 num_sim_threads = config['num_sim_threads']
-num_retries = 3 # config['num_retries']
+num_retries = config['num_retries']
 
 rule fep_run_ligand_emin:
     input:

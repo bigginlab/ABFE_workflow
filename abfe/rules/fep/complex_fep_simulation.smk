@@ -4,7 +4,7 @@ complex_windows = config["complex_windows"]
 n_coul_windows = config['n_coul_windows_complex']
 n_rest_windows = config['n_rest_windows_complex']
 n_vdw_windows = config['n_vdw_windows_complex']
-num_retries = 3 #config['num_retries']
+num_retries = config['num_retries']
 num_sim_threads = config['num_sim_threads']
 
 rule fep_run_complex_emin:
