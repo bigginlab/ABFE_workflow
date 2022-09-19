@@ -30,7 +30,7 @@ if __name__ == "__main__":
     
     # Do Fun!
     if(not os.path.isdir(out_root_path)): os.mkdir(out_root_path)
-    calculate_all_ligands(input_ligand_paths=input_ligand_paths, out_root_path=out_root_path, 
-                           num_replicas=num_replicas, n_cores=n_cores, submit=submit, num_jobs=num_jobs, cluster_config=cluster_config))
+    calculate_all_ligands(input_ligand_paths=input_ligand_paths, out_root_path=out_root_path,  num_max_thread = 8,
+                           num_replicas=num_replicas, n_cores=n_cores, submit=submit, num_jobs=num_jobs, cluster_config=cluster_config)
 
     os.chdir(orig_dir)

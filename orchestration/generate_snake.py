@@ -22,8 +22,7 @@ def get_fep_res()->str:
     "include: \'"+rules.fep_path+"\'",
     "rule all:",
     "    input:",
-    "        out_ligand = run_path+\"/dg_ligand_results.csv\",",
-    "        out_complex = run_path+\"/dg_complex_results.csv\"",
+    "        dG_path=run_path+\"/dG_results.csv\"",
     ""
     ]
     return "\n".join(cmd)
@@ -40,8 +39,7 @@ def get_all_eq_fep_res()->str:
     "## Do Check all results",
     "rule all:",
     "    input:",
-    "        out_ligand = run_path+\"/dg_ligand_results.csv\",",
-    "        out_complex = run_path+\"/dg_complex_results.csv\"",
+    "        dG_path=run_path+\"/dG_results.csv\"",
     ""
     ]
     return "\n".join(cmd)

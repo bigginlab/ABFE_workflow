@@ -3,7 +3,7 @@ import subprocess
 
 class scheduler():
     
-    def __init__(self, out_dir_path:str, n_cores:int, time:str="96:00:00", partition="cpu") -> None:
+    def __init__(self, out_dir_path:str, n_cores:int=1, time:str="96:00:00", partition="cpu") -> None:
         self.n_cores=n_cores
         self.out_dir_path = out_dir_path
         self.out_job_path = out_dir_path+"/job.sh"
@@ -27,27 +27,35 @@ class scheduler():
         
         return self.out_scheduler_path
         
-    def generate_job_file(self, out_prefix, cluster_conf_path:str, cluster=False, num_jobs:int=1, latency_wait:int=60):
+    def generate_job_file(self, out_prefix, cluster_conf_path:str, cluster_config:dict=None, cluster=False, num_jobs:int=1, latency_wait:int=60):
         if(cluster):
             root_dir = os.path.dirname(cluster_conf_path)
             slurm_logs = os.path.dirname(cluster_conf_path)+"/slurm_logs"
             if(not os.path.exists(slurm_logs)): os.mkdir(slurm_logs)
             
-            cluster_config ={
-                "partition": "cpu",
-                "time": "48:00:00",
-                "cpus-per-task": '{threads}',
-                "cores-per-socket": '{threads}',
-                "mem": "20GB",
-                "chdir": root_dir,                
-                "job-name": "\\\""+str(out_prefix)+".{name}.{jobid}\\\"",
-                "output":  "\\\""+slurm_logs+"/"+str(out_prefix)+"_{name}_{jobid}.out\\\"",
-                "error":  "\\\""+slurm_logs+"/"+str(out_prefix)+"_{name}_{jobid}.err\\\""
-            }
+            if(cluster and cluster_config is None):
+                cluster_config ={
+                    "partition": "cpu",
+                    "time": "48:00:00",
+                    "mem": "20GB",
+                }
+            if(not all([x in cluster_config for x in ["partition", "time", "mem"]])):
+                raise ValueError("missing keys in cluster_config! at least give: [\"partition\", \"time\", \"mem\"] ", cluster_config)
+            
+            self.n_cores=1
+            cluster_config.update({
+                    "cpus-per-task": '{threads}',
+                    "cores-per-socket": '{threads}',
+                    "chdir": root_dir,                
+                    "job-name": "\\\""+str(out_prefix)+".{name}.{jobid}\\\"",
+                    "output":  "\\\""+slurm_logs+"/"+str(out_prefix)+"_{name}_{jobid}.out\\\"",
+                    "error":  "\\\""+slurm_logs+"/"+str(out_prefix)+"_{name}_{jobid}.err\\\""
+                })
             
             json.dump(cluster_config, open(cluster_conf_path, "w"), indent="  ")
             cluster_options = " ".join(["--"+key+"="+str(val)+" " for key, val in cluster_config.items()])
             
+            #TODO: change this here, such each job can access resource from cluster-config!
             file_str = "\n".join([
                 "#!/bin/env bash",
                 "snakemake --cluster \"sbatch "+cluster_options+"\" --cluster-config "+cluster_conf_path+" --jobs "+str(num_jobs)+" --latency-wait "+str(latency_wait)+" --rerun-incomplete "

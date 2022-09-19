@@ -18,5 +18,4 @@ run_path = config["run_path"]
 
 rule fep_results:
     input:
-        complex_dg=run_path+"/dg_complex_results.csv",
-        ligand_dg=run_path+"/dg_ligand_results.csv"
+        dG_path=run_path+"/dG_results.csv",

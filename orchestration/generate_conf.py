@@ -2,7 +2,7 @@ import json
 import numpy as np
 
 def generate_ligand_conf(out_path:str, code_path:str, run_path:str,  input_data_path:str,
-                         num_replica:int=1,
+                         num_replica:int=1, num_sim_threads:int=8,
                          n_vdw_windows_complex:int=21, n_rest_windows_complex:int=11, n_coul_windows_complex:int=11,
                          n_vdw_windows_ligand:int=11,  n_coul_windows_ligand:int=11,):
   
@@ -27,13 +27,14 @@ def generate_ligand_conf(out_path:str, code_path:str, run_path:str,  input_data_
     ligand_windows = vdw_ligand_windows + coul_ligand_windows
     
     #Parallel:
-    num_sim_threads= 8
+    num_sim_threads= num_sim_threads
+    
 
     run_num = num_replica
     run_path = run_path
+    num_retries = 3
 
     conf_settings = { k:v for k,v in locals().items() if not k.startswith("__")}
-    num_retries = 3
     
     out_IO = open(out_path,"w")
     json.dump(conf_settings, out_IO, indent=4)
