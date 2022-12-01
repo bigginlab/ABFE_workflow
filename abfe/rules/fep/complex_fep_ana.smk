@@ -50,7 +50,8 @@ rule fep_ana_gather_complex_xvg:
 
 rule fep_ana_get_dg_complex:
     input:
-        xvg_dir=run_path+"/complex/fep/ana/xvgs"
+        xvg_dir=run_path+"/complex/fep/ana/xvgs",
+        boresch_dG_off = run_path+"/complex/equil-mdsim/boreschcalc/dG_off.dat"
     params:
         conf_path = run_path+"/snake_conf.json",
         out_dir=run_path+"/complex/fep/ana",
@@ -58,5 +59,5 @@ rule fep_ana_get_dg_complex:
     output:
         complex_var=run_path+"/complex/fep/ana/dg_results.csv"
     shell:
-        "python {params.script_dir}/alchemlyb-analysis-complex.py --xvgpath {input.xvg_dir}  --confpath {params.conf_path} --outpath {params.out_dir}"
+        "python {params.script_dir}/alchemlyb-analysis-complex.py --xvgpath {input.xvg_dir}  --confpath {params.conf_path} --outpath {params.out_dir} --boresch_data {input.boresch_dat}"
 

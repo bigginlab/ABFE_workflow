@@ -4,7 +4,7 @@ calculate dF for complex system
 
 import json
 import argparse
-
+import numpy as np
 from abfe.scripts.alchemlyb_analysis import analyze_ligand
 
 
@@ -19,6 +19,8 @@ if __name__ == "__main__":
                         help='input xvg path')
     parser.add_argument('--outpath', default='./',
                         help='output path for writing files')
+    parser.add_argument("--boresch_data",
+                        help='boresch restraint correction')
     args = parser.parse_args()
 
 
@@ -34,5 +36,17 @@ if __name__ == "__main__":
                             system_name="complex",
                             lower=1000,
                             min_samples=200)
+    
+    #include boresch correction
+    col = []
+    res_V = float(np.loadtxt(args.boresch_data))
+    for row in res_df.index():
+        if(row == "sys"):
+            col.append("ligand")
+        elif(row == "windows"):
+            col.append("-")
+        else:
+            col.append(res_V)
+    res_df['boresch'] = col
     
     res_df.to_csv(args.outpath+"/dg_results.csv")

@@ -130,7 +130,7 @@ rule equil_run_complex_get_boresch_restraints:
     output:
         gro=run_path+"/complex/equil-mdsim/boreschcalc/ClosestRestraintFrame.gro",
         top=run_path+"/complex/equil-mdsim/boreschcalc/BoreschRestraint.top",
-        dG_off=run_path+"/complex/equil-mdsim/boreschcalc/dG_off.dat"
+        boresch_dG_off=run_path+"/complex/equil-mdsim/boreschcalc/dG_off.dat"
     shell:
         '''
             python {params.code_path}/boresch.py --top {input.tpr} --trj {input.xtc} --outpath {params.run_dir}

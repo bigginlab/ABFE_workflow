@@ -33,10 +33,10 @@ if __name__ == "__main__":
     complex_dict = complex_df.to_dict()
     ligand_dict = ligand_df.to_dict()
 
-    dG_totLig_MBAR =  float(ligand_dict["vdw"]["MBAR"]) + float(ligand_dict["coul"]["MBAR"])
+    dG_totLig_MBAR =  float(ligand_dict["vdw"]["MBAR"]) + float(ligand_dict["coul"]["MBAR"]) + float(complex_dict["boresch"]["MBAR"])
     dG_totComp_MBAR = float(complex_dict["restraints"]["MBAR"]) + float(complex_dict["vdw"]["MBAR"]) + float(complex_dict["coul"]["MBAR"])
 
-    dG_totLig_TI = float(ligand_dict["vdw"]["TI"]) + float(ligand_dict["coul"]["TI"])
+    dG_totLig_TI = float(ligand_dict["vdw"]["TI"]) + float(ligand_dict["coul"]["TI"]) + float(complex_dict["boresch"]["TI"])
     dG_totComp_TI =  float(complex_dict["restraints"]["TI"]) + float(complex_dict["vdw"]["TI"]) + float(complex_dict["coul"]["TI"])
 
     complex_dict.update({"total": {"sys": "complex", "windows":"-", "MBAR": dG_totComp_MBAR, "TI":dG_totComp_TI,}})

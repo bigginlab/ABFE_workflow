@@ -5,7 +5,7 @@ from typing import List
 from abfe.orchestration import generate_conf, generate_snake, generate_scheduler
 
 
-def build_run_ligand(out_root_path:str, input_ligand_path:str, n_cores:int=1,
+def build_run_ligand(out_root_path:str, input_ligand_path:str, n_cores:int=1, num_max_thread:int=1,
                      num_replicas:int=3, cluster_config={}, submit:bool=False, num_jobs=1):
     
     prefix = "_".join(input_ligand_path.split("/")[-2:])
@@ -27,13 +27,10 @@ def build_run_ligand(out_root_path:str, input_ligand_path:str, n_cores:int=1,
         generate_snake.generate_snake_file(out_file_path=snake_path, 
             conf_file_path=conf_path, 
             code_file_path=code_path)
-        
-        if("num_sim_threads" in cluster_config):
-            n_cores = cluster_config["num_sim_threads"]
             
         generate_conf.generate_ligand_conf(out_path=conf_path,
                                         run_path=out_path,
-                                        num_sim_threads=n_cores,
+                                        num_sim_threads=num_max_thread,
                                         input_data_path=input_ligand_path,
                                         num_replica=num_replica,
                                         code_path=code_path
@@ -51,10 +48,10 @@ def build_run_ligand(out_root_path:str, input_ligand_path:str, n_cores:int=1,
         return None
     
 def calculate_all_ligands(input_ligand_paths:List[str], out_root_path:str,
-                         num_replicas:int, cluster_config:dict, submit:bool, num_jobs:int):
+                         num_replicas:int, cluster_config:dict, submit:bool, num_jobs:int,  num_max_thread:int):
     job_ids = []
     for ligand_id in input_ligand_paths:
-        job_id = build_run_ligand(out_root_path=out_root_path, input_ligand_path=ligand_id,
+        job_id = build_run_ligand(out_root_path=out_root_path, input_ligand_path=ligand_id,num_max_thread=num_max_thread,
                                            num_replicas=num_replicas, cluster_config=cluster_config, submit=submit, num_jobs=num_jobs)
         job_ids.append(job_id)
         

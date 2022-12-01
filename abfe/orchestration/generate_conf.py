@@ -28,12 +28,13 @@ def generate_ligand_conf(out_path:str, code_path:str, run_path:str,  input_data_
     
     #Parallel:
     num_sim_threads= num_sim_threads
+    
 
     run_num = num_replica
     run_path = run_path
+    num_retries = 3
 
     conf_settings = { k:v for k,v in locals().items() if not k.startswith("__")}
-    num_retries = 3
     
     out_IO = open(out_path,"w")
     json.dump(conf_settings, out_IO, indent=4)
