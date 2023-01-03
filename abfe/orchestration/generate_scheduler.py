@@ -77,7 +77,11 @@ class scheduler():
     def schedule_run(self)->int:
         orig_path = os.getcwd()
         os.chdir(self.out_dir_path)
-        out = subprocess.getoutput(self.out_scheduler_path)
+        out_script = os.path.basename(self.out_scheduler_path)
+        out = subprocess.getoutput("./"+out_script)
+        print()
+        print(out)
+        print()
         job_id = int(out.split()[-1])
         os.chdir(orig_path)
         
