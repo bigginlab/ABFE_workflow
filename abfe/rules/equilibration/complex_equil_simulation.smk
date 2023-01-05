@@ -87,28 +87,28 @@ rule equil_run_complex_prod:
         cpt=run_path+"/complex/equil-mdsim/npt_equil2/npt_equil2.cpt"
     params:
         nthreads=num_sim_threads,
-        run_dir=run_path+"/complex/equil-mdsim/npt_prod1"
+        run_dir=run_path+"/complex/equil-mdsim/npt_prod"
     output:
-        tpr=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod1.tpr",
-        gro=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod1.gro",
-        xtc=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod1.xtc",
+        tpr=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod.tpr",
+        gro=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod.gro",
+        xtc=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod.xtc",
     threads: num_sim_threads
     shell:
         '''
             export OMP_NUM_THREADS={params.nthreads}
             gmx grompp -f {params.run_dir}/npt_prod.mdp -c {input.gro} -t {input.cpt} \
-                    -p {input.top} -o {params.run_dir}/npt_prod1.tpr -maxwarn 2
+                    -p {input.top} -o {params.run_dir}/npt_prod.tpr -maxwarn 2
             gmx mdrun -deffnm {params.run_dir}/npt_prod1 -ntomp {params.nthreads}
         '''
 
 rule equil_run_complex_trjconv:
     input:
-        tpr=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod1.tpr",
-        xtc=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod1.xtc"
+        tpr=run_path+"/complex/equil-mdsim/npt_prod/npt_prod1.tpr",
+        xtc=run_path+"/complex/equil-mdsim/npt_prod/npt_prod1.xtc"
     params:
         run_dir=run_path+"/complex/equil-mdsim/boreschcalc/"
     output:
-        xtc=run_path+"/complex/equil-mdsim/boreschcalc/npt_prod1_center.xtc"
+        xtc=run_path+"/complex/equil-mdsim/boreschcalc/npt_prod_center.xtc"
     shell:
         '''
             echo 0 | gmx trjconv -s {input.tpr} -f {input.xtc} -o {params.run_dir}/whole.xtc -pbc whole
@@ -122,8 +122,8 @@ rule equil_run_complex_trjconv:
 
 rule equil_run_complex_get_boresch_restraints:
     input:
-        tpr=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod1.tpr",
-        xtc=run_path+"/complex/equil-mdsim/boreschcalc/npt_prod1_center.xtc"
+        tpr=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod.tpr",
+        xtc=run_path+"/complex/equil-mdsim/boreschcalc/npt_prod_center.xtc"
     params:
         run_dir=run_path+"/complex/equil-mdsim/boreschcalc/",
         code_path = scripts.root_path
