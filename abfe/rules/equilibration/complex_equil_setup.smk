@@ -7,7 +7,7 @@ rule equil_setup_complex:
     input:
         input_path+"/complex"
     params:
-        sim_dir=run_path+"/complex/",
+        sim_dir=run_path+"/complex",
         complex_template=template.complex_equil_template_path
     output:
         complex_top=directory(run_path+"/complex/topology"),

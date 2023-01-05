@@ -1,5 +1,10 @@
+from abfe import template
+
 run_path = config["run_path"]
 num_sim_threads = config['num_sim_threads']
+
+gromacs_run_script=template.gmx_submit_kernels_path+"/def_cpu_job.sh"
+gromacs_cont_script=template.gmx_submit_kernels_path+"/def_cpu_job_cont.sh"
 
 rule equil_run_ligand_emin:
     input:
@@ -7,16 +12,16 @@ rule equil_run_ligand_emin:
         gro=run_path+"/ligand/topology/ligand.gro"
     params:
         nthreads=num_sim_threads,
-        run_dir=run_path+"/ligand/equil-mdsim/emin"
+        run_dir=run_path+"/ligand/equil-mdsim/emin",
+        gmx_template=gromacs_run_script
     output:
         gro=run_path+"/ligand/equil-mdsim/emin/emin.gro"
     threads: num_sim_threads
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.run_dir}/emin.mdp -c {input.gro} \
-                    -p {input.top} -o {params.run_dir}/emin.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.run_dir}/emin -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./emin.sh   
+            ./job_emin.sh {params.nthreads} emin {input.top} {input.gro}
         '''
 
 rule equil_run_ligand_nvt_heat:
@@ -25,17 +30,17 @@ rule equil_run_ligand_nvt_heat:
         gro=run_path+"/ligand/equil-mdsim/emin/emin.gro"
     params:
         nthreads=num_sim_threads,
-        run_dir=run_path+"/ligand/equil-mdsim/nvt_heat"
+        run_dir=run_path+"/ligand/equil-mdsim/nvt_heat",
+        gmx_template=gromacs_run_script
     output:
         gro=run_path+"/ligand/equil-mdsim/nvt_heat/nvt_heat.gro",
         cpt=run_path+"/ligand/equil-mdsim/nvt_heat/nvt_heat.cpt"
     threads: num_sim_threads
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.run_dir}/nvt_heat.mdp -c {input.gro} -r {input.gro} \
-                    -p {input.top} -o {params.run_dir}/nvt_heat.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.run_dir}/nvt_heat -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_nvt_heat.sh   
+            ./job_nvt_heat.sh {params.nthreads} nvt_heat {input.top} {input.gro}
         '''
 
 rule equil_run_ligand_npt_eq1:
@@ -45,17 +50,17 @@ rule equil_run_ligand_npt_eq1:
         cpt=run_path+"/ligand/equil-mdsim/nvt_heat/nvt_heat.cpt"
     params:
         nthreads=num_sim_threads,
-        run_dir=run_path+"/ligand/equil-mdsim/npt_equil1"
+        run_dir=run_path+"/ligand/equil-mdsim/npt_equil1",
+        gmx_template=gromacs_cont_script
     output:
         gro=run_path+"/ligand/equil-mdsim/npt_equil1/npt_equil1.gro",
         cpt=run_path+"/ligand/equil-mdsim/npt_equil1/npt_equil1.cpt"
     threads: num_sim_threads
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.run_dir}/npt_equil1.mdp -c {input.gro} -t {input.cpt} \
-                    -r {input.gro} -p {input.top} -o {params.run_dir}/npt_equil1.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.run_dir}/npt_equil1 -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_npt_eq1.sh   
+            ./job_npt_eq1.sh {params.nthreads} npt_equil1 {input.top} {input.gro}
         '''
 
 rule equil_run_ligand_npt_eq2:
@@ -65,15 +70,15 @@ rule equil_run_ligand_npt_eq2:
         cpt=run_path+"/ligand/equil-mdsim/npt_equil1/npt_equil1.cpt"
     params:
         nthreads=num_sim_threads,
-        run_dir=run_path+"/ligand/equil-mdsim/npt_equil2"
+        run_dir=run_path+"/ligand/equil-mdsim/npt_equil2",
+        gmx_template=gromacs_cont_script
     output:
         gro=run_path+"/ligand/equil-mdsim/npt_equil2/npt_equil2.gro",
         cpt=run_path+"/ligand/equil-mdsim/npt_equil2/npt_equil2.cpt",
     threads: num_sim_threads
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.run_dir}/npt_equil2.mdp -c {input.gro} -t {input.cpt} \
-                    -p {input.top} -o {params.run_dir}/npt_equil2.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.run_dir}/npt_equil2 -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_npt_eq2.sh   
+            ./job_npt_eq2.sh {params.nthreads} npt_equil2 {input.top} {input.gro} 
         '''

@@ -7,7 +7,7 @@ rule equil_setup_ligand:
     input:
         input_path+"/ligand"
     params:
-        sim_dir=run_path+"/ligand/",
+        sim_dir=run_path+"/ligand",
         template_dir=template.ligand_equil_template_path
     output:
         ligand_top=directory(run_path+"/ligand/topology"),

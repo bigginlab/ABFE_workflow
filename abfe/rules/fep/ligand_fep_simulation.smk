@@ -1,109 +1,118 @@
+from abfe import template
+
 run_path = config["run_path"]
+simulation_dir = run_path+"/ligand/fep/simulation"
+top_dir = run_path+"/ligand/fep/fep-topology"
+
 num_sim_threads = config['num_sim_threads']
 num_retries = config['num_retries']
 
+gromacs_run_script=template.gmx_submit_kernels_path+"/def_cpu_job.sh"
+gromacs_cont_script=template.gmx_submit_kernels_path+"/def_cpu_job_cont.sh"
+
 rule fep_run_ligand_emin:
     input:
-        mdp=run_path+"/ligand/fep/simulation/{state}/em/em.mdp"
+        gro=top_dir+"/equil.gro",
+        top=top_dir+"/ligand.top",
+        mdp=simulation_dir+"/{state}/emin/emin.mdp"
     params:
         nthreads=num_sim_threads,
-        fep_dir=run_path+"/ligand/fep/simulation/{state}",
-        top_dir=run_path+"/ligand/fep/fep-topology/"
+        run_dir=simulation_dir+"/{state}/emin",
+        gmx_template=gromacs_run_script
     output:
-        gro=run_path+"/ligand/fep/simulation/{state}/em/emin.gro"
+        gro=simulation_dir+"/{state}/emin/emin.gro"
     threads: num_sim_threads
     retries: num_retries
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.fep_dir}/em/em.mdp -c {params.top_dir}/equil.gro \
-                    -p {params.top_dir}/ligand.top -o {params.fep_dir}/em/emin.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.fep_dir}/em/emin -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_emin.sh   
+            ./job_emin.sh {params.nthreads} emin {input.top} {input.gro}
         '''
 
 rule fep_run_ligand_nvt_heat:
     input:
-        mdp=run_path+"/ligand/fep/simulation/{state}/nvt/nvt.mdp",
-        gro=run_path+"/ligand/fep/simulation/{state}/em/emin.gro"
+        top=top_dir+"/ligand.top",
+        mdp=simulation_dir+"/{state}/nvt/nvt.mdp",
+        gro=simulation_dir+"/{state}/emin/emin.gro"
     params:
         nthreads=num_sim_threads,
-        fep_dir=run_path+"/ligand/fep/simulation/{state}",
-        top_dir=run_path+"/ligand/fep/fep-topology/"
+        run_dir=simulation_dir+"/{state}/nvt",
+        gmx_template=gromacs_run_script
     output:
-        gro=run_path+"/ligand/fep/simulation/{state}/nvt/nvt.gro",
-        cpt=run_path+"/ligand/fep/simulation/{state}/nvt/nvt.cpt"
+        gro=simulation_dir+"/{state}/nvt/nvt.gro",
+        cpt=simulation_dir+"/{state}/nvt/nvt.cpt"
     threads: num_sim_threads
     retries: num_retries
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.fep_dir}/nvt/nvt.mdp -c {input.gro} -r {input.gro} \
-                    -p {params.top_dir}/ligand.top -o {params.fep_dir}/nvt/nvt.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.fep_dir}/nvt/nvt -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_nvt.sh   
+            ./job_nvt.sh {params.nthreads} nvt {input.top} {input.gro}
         '''
 
 rule fep_run_ligand_npt_eq1:
     input:
-        mdp=run_path+"/ligand/fep/simulation/{state}/npt/npt.mdp",
-        gro=run_path+"/ligand/fep/simulation/{state}/nvt/nvt.gro",
-        cpt=run_path+"/ligand/fep/simulation/{state}/nvt/nvt.cpt"
+        top=top_dir+"/ligand.top",
+        mdp=simulation_dir+"/{state}/npt/npt.mdp",
+        gro=simulation_dir+"/{state}/nvt/nvt.gro",
+        cpt=simulation_dir+"/{state}/nvt/nvt.cpt"
     params:
         nthreads=num_sim_threads,
-        fep_dir=run_path+"/ligand/fep/simulation/{state}",
-        top_dir=run_path+"/ligand/fep/fep-topology/"
+        run_dir=simulation_dir+"/{state}/npt",
+        gmx_template=gromacs_cont_script
     output:
-        gro=run_path+"/ligand/fep/simulation/{state}/npt/npt.gro",
-        cpt=run_path+"/ligand/fep/simulation/{state}/npt/npt.cpt"
+        gro=simulation_dir+"/{state}/npt/npt.gro",
+        cpt=simulation_dir+"/{state}/npt/npt.cpt"
     threads: num_sim_threads
     retries: num_retries
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.fep_dir}/npt/npt.mdp -c {input.gro} -t {input.cpt} \
-                    -r {input.gro} -p {params.top_dir}/ligand.top -o {params.fep_dir}/npt/npt.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.fep_dir}/npt/npt -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_npt.sh   
+            ./job_npt.sh {params.nthreads} npt {input.top} {input.gro} {input.cpt}
         '''
 
 rule fep_run_ligand_npt_eq2:
     input:
-        mdp=run_path+"/ligand/fep/simulation/{state}/npt-norest/npt-norest.mdp",
-        gro=run_path+"/ligand/fep/simulation/{state}/npt/npt.gro",
-        cpt=run_path+"/ligand/fep/simulation/{state}/npt/npt.cpt"
+        top=top_dir+"/ligand.top",
+        mdp=simulation_dir+"/{state}/npt-norest/npt-norest.mdp",
+        gro=simulation_dir+"/{state}/npt/npt.gro",
+        cpt=simulation_dir+"/{state}/npt/npt.cpt"
     params:
         nthreads=num_sim_threads,
-        fep_dir=run_path+"/ligand/fep/simulation/{state}",
-        top_dir=run_path+"/ligand/fep/fep-topology/"
+        run_dir=simulation_dir+"/{state}/npt-norest",
+        gmx_template=gromacs_cont_script
     output:
-        gro=run_path+"/ligand/fep/simulation/{state}/npt-norest/npt-norest.gro",
-        cpt=run_path+"/ligand/fep/simulation/{state}/npt-norest/npt-norest.cpt"
+        gro=simulation_dir+"/{state}/npt-norest/npt-norest.gro",
+        cpt=simulation_dir+"/{state}/npt-norest/npt-norest.cpt"
     threads: num_sim_threads
     retries: num_retries
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.fep_dir}/npt-norest/npt-norest.mdp -c {input.gro} -t {input.cpt} \
-                    -p {params.top_dir}/ligand.top -o {params.fep_dir}/npt-norest/npt-norest.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.fep_dir}/npt-norest/npt-norest -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_npt_norest.sh   
+            ./job_npt_norest.sh {params.nthreads} npt-norest {input.top} {input.gro} {input.cpt}
         '''
 
 rule fep_run_ligand_prod:
     input:
-        mdp=run_path+"/ligand/fep/simulation/{state}/prod/prod.mdp",
-        gro=run_path+"/ligand/fep/simulation/{state}/npt-norest/npt-norest.gro",
-        cpt=run_path+"/ligand/fep/simulation/{state}/npt-norest/npt-norest.cpt"
+        top=top_dir+"/ligand.top",
+        mdp=simulation_dir+"/{state}/prod/prod.mdp",
+        gro=simulation_dir+"/{state}/npt-norest/npt-norest.gro",
+        cpt=simulation_dir+"/{state}/npt-norest/npt-norest.cpt"
     params:
         nthreads=num_sim_threads,
-        fep_dir=run_path+"/ligand/fep/simulation/{state}",
-        top_dir=run_path+"/ligand/fep/fep-topology/"
+        run_dir=simulation_dir+"/{state}",
+        gmx_template=gromacs_cont_script
     output:
-        gro=run_path+"/ligand/fep/simulation/{state}/prod/prod.gro",
-        xvg=run_path+"/ligand/fep/simulation/{state}/prod/prod.xvg"
+        gro=simulation_dir+"/{state}/prod/prod.gro",
+        xvg=simulation_dir+"/{state}/prod/prod.xvg"
     threads: num_sim_threads
     retries: num_retries
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.fep_dir}/prod/prod.mdp -c {input.gro} -t {input.cpt} \
-                    -p {params.top_dir}/ligand.top -o {params.fep_dir}/prod/prod.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.fep_dir}/prod/prod -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_prod.sh   
+            ./job_prod.sh {params.nthreads} prod {input.top} {input.gro} {input.cpt}
         '''

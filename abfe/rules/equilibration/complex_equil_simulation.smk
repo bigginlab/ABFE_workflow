@@ -1,7 +1,12 @@
 from abfe import scripts
+from abfe import template
 
 run_path = config["run_path"]
 num_sim_threads = config['num_sim_threads']
+
+gromacs_run_script=template.gmx_submit_kernels_path+"/def_cpu_job.sh"
+gromacs_cont_script=template.gmx_submit_kernels_path+"/def_cpu_job_cont.sh"
+
 
 rule equil_run_complex_emin:
     input:
@@ -9,16 +14,16 @@ rule equil_run_complex_emin:
         gro=run_path+"/complex/topology/complex.gro",
     params:
         nthreads=num_sim_threads,
-        run_dir=run_path+"/complex/equil-mdsim/emin"
+        run_dir=run_path+"/complex/equil-mdsim/emin",
+        gmx_template=gromacs_run_script
     output:
         gro=run_path+"/complex/equil-mdsim/emin/emin.gro"
     threads: num_sim_threads
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.run_dir}/emin.mdp -c {input.gro} \
-                    -p {input.top} -o {params.run_dir}/emin.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.run_dir}/emin -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./emin.sh   
+            ./job_emin.sh {params.nthreads} emin {input.top} {input.gro} 
         '''
 
 rule equil_run_complex_nvt_heat:
@@ -27,17 +32,17 @@ rule equil_run_complex_nvt_heat:
         gro=run_path+"/complex/equil-mdsim/emin/emin.gro"
     params:
         nthreads=num_sim_threads,
-        run_dir=run_path+"/complex/equil-mdsim/nvt_heat"
+        run_dir=run_path+"/complex/equil-mdsim/nvt_heat",
+        gmx_template=gromacs_run_script
     output:
         gro=run_path+"/complex/equil-mdsim/nvt_heat/nvt_heat.gro",
         cpt=run_path+"/complex/equil-mdsim/nvt_heat/nvt_heat.cpt"
     threads: num_sim_threads
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.run_dir}/nvt_heat.mdp -c {input.gro} -r {input.gro} \
-                    -p {input.top} -o {params.run_dir}/nvt_heat.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.run_dir}/nvt_heat -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_nvt_heat.sh   
+            ./job_nvt_heat.sh {params.nthreads} nvt_heat  {input.top} {input.gro}
         '''
 
 rule equil_run_complex_npt_eq1:
@@ -47,17 +52,17 @@ rule equil_run_complex_npt_eq1:
         cpt=run_path+"/complex/equil-mdsim/nvt_heat/nvt_heat.cpt"
     params:
         nthreads=num_sim_threads,
-        run_dir=run_path+"/complex/equil-mdsim/npt_equil1"
+        run_dir=run_path+"/complex/equil-mdsim/npt_equil1",
+        gmx_template=gromacs_cont_script
     output:
         gro=run_path+"/complex/equil-mdsim/npt_equil1/npt_equil1.gro",
         cpt=run_path+"/complex/equil-mdsim/npt_equil1/npt_equil1.cpt"
     threads: num_sim_threads
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.run_dir}/npt_equil1.mdp -c {input.gro} -t {input.cpt} \
-                    -r {input.gro} -p {input.top} -o {params.run_dir}/npt_equil1.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.run_dir}/npt_equil1 -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_npt_eq1.sh   
+            ./job_npt_eq1.sh {params.nthreads} npt_equil1 {input.top} {input.gro} {input.cpt}
         '''
 
 rule equil_run_complex_npt_eq2:
@@ -67,17 +72,17 @@ rule equil_run_complex_npt_eq2:
         cpt=run_path+"/complex/equil-mdsim/npt_equil1/npt_equil1.cpt"
     params:
         nthreads=num_sim_threads,
-        run_dir=run_path+"/complex/equil-mdsim/npt_equil2"
+        run_dir=run_path+"/complex/equil-mdsim/npt_equil2",
+        gmx_template=gromacs_cont_script
     output:
         gro=run_path+"/complex/equil-mdsim/npt_equil2/npt_equil2.gro",
         cpt=run_path+"/complex/equil-mdsim/npt_equil2/npt_equil2.cpt"
     threads: num_sim_threads
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.run_dir}/npt_equil2.mdp -c {input.gro} -t {input.cpt} \
-                    -p {input.top} -o {params.run_dir}/npt_equil2.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.run_dir}/npt_equil2 -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_npt_eq2.sh   
+            ./job_npt_eq2.sh {params.nthreads} npt_equil2 {input.top} {input.gro} {input.cpt}
         '''
 
 rule equil_run_complex_prod:
@@ -87,24 +92,24 @@ rule equil_run_complex_prod:
         cpt=run_path+"/complex/equil-mdsim/npt_equil2/npt_equil2.cpt"
     params:
         nthreads=num_sim_threads,
-        run_dir=run_path+"/complex/equil-mdsim/npt_prod"
+        run_dir=run_path+"/complex/equil-mdsim/npt_prod",
+        gmx_template=gromacs_cont_script
     output:
-        tpr=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod.tpr",
-        gro=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod.gro",
-        xtc=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod.xtc",
+        tpr=run_path+"/complex/equil-mdsim/npt_prod/npt_prod.tpr",
+        gro=run_path+"/complex/equil-mdsim/npt_prod/npt_prod.gro",
+        xtc=run_path+"/complex/equil-mdsim/npt_prod/npt_prod.xtc",
     threads: num_sim_threads
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.run_dir}/npt_prod.mdp -c {input.gro} -t {input.cpt} \
-                    -p {input.top} -o {params.run_dir}/npt_prod.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.run_dir}/npt_prod1 -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_npt_prod.sh   
+            ./job_npt_prod.sh  {params.nthreads} npt_prod {input.top} {input.gro} {input.cpt}
         '''
 
 rule equil_run_complex_trjconv:
     input:
-        tpr=run_path+"/complex/equil-mdsim/npt_prod/npt_prod1.tpr",
-        xtc=run_path+"/complex/equil-mdsim/npt_prod/npt_prod1.xtc"
+        tpr=run_path+"/complex/equil-mdsim/npt_prod/npt_prod.tpr",
+        xtc=run_path+"/complex/equil-mdsim/npt_prod/npt_prod.xtc"
     params:
         run_dir=run_path+"/complex/equil-mdsim/boreschcalc/"
     output:
@@ -122,7 +127,7 @@ rule equil_run_complex_trjconv:
 
 rule equil_run_complex_get_boresch_restraints:
     input:
-        tpr=run_path+"/complex/equil-mdsim/npt_prod1/npt_prod.tpr",
+        tpr=run_path+"/complex/equil-mdsim/npt_prod/npt_prod.tpr",
         xtc=run_path+"/complex/equil-mdsim/boreschcalc/npt_prod_center.xtc"
     params:
         run_dir=run_path+"/complex/equil-mdsim/boreschcalc/",

@@ -19,11 +19,13 @@ rule fep_setup_ligand:
         coul_range=" ".join(map(str, lam_coul_range)),
         template_dir = template.ligand_fep_template_path,
     output:
-        fep_em=expand(run_path+"/ligand/fep/simulation/{state}/em/em.mdp", state=ligand_windows),
+        fep_em=expand(run_path+"/ligand/fep/simulation/{state}/emin/emin.mdp", state=ligand_windows),
         fep_npt=expand(run_path+"/ligand/fep/simulation/{state}/npt/npt.mdp", state=ligand_windows),
         fep_npt_norest=expand(run_path+"/ligand/fep/simulation/{state}/npt-norest/npt-norest.mdp", state=ligand_windows),
         fep_nvt=expand(run_path+"/ligand/fep/simulation/{state}/nvt/nvt.mdp", state=ligand_windows),
         fep_prod=expand(run_path+"/ligand/fep/simulation/{state}/prod/prod.mdp", state=ligand_windows),
+        fep_top=run_path+"/ligand/fep/fep-topology/ligand.top",
+        fep_gro=run_path+"/ligand/fep/fep-topology/equil.gro"
     shell:
         '''
             mkdir -p {params.sim_dir}/template

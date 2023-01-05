@@ -25,11 +25,13 @@ rule fep_setup_complex:
         coul_windows=n_coul_windows,
         template_dir=template.complex_fep_template_path,
     output:
-        fep_em=expand(run_path+"/complex/fep/simulation/{state}/em/em.mdp", state=complex_windows),
+        fep_em=expand(run_path+"/complex/fep/simulation/{state}/emin/emin.mdp", state=complex_windows),
         fep_npt=expand(run_path+"/complex/fep/simulation/{state}/npt/npt.mdp", state=complex_windows),
         fep_npt_norest=expand(run_path+"/complex/fep/simulation/{state}/npt-norest/npt-norest.mdp", state=complex_windows),
         fep_nvt=expand(run_path+"/complex/fep/simulation/{state}/nvt/nvt.mdp", state=complex_windows),
         fep_prod=expand(run_path+"/complex/fep/simulation/{state}/prod/prod.mdp", state=complex_windows),
+        fep_top=run_path+"/complex/fep/fep-topology/complex_boresch.top",
+        fep_gro=run_path+"/complex/fep/fep-topology/complex.gro"
     shell:
         '''
             mkdir -p {params.sim_dir}/template

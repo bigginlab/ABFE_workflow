@@ -1,39 +1,43 @@
 from abfe import scripts
+from abfe import template
+
 run_path = config["run_path"]
-complex_windows = config["complex_windows"]
-n_coul_windows = config['n_coul_windows_complex']
-n_rest_windows = config['n_rest_windows_complex']
-n_vdw_windows = config['n_vdw_windows_complex']
 num_retries = config['num_retries']
 num_sim_threads = config['num_sim_threads']
 
+gromacs_run_script=template.gmx_submit_kernels_path+"/def_cpu_job.sh"
+gromacs_cont_script=template.gmx_submit_kernels_path+"/def_cpu_job_cont.sh"
+
+
 rule fep_run_complex_emin:
     input:
-        mdp=run_path+"/complex/fep/simulation/{state}/em/em.mdp",
+        top=run_path+"/complex/fep/fep-topology/complex_boresch.top",
+        gro=run_path+"/complex/fep/fep-topology/complex.gro",
+        mdp=run_path+"/complex/fep/simulation/{state}/emin/emin.mdp",
     params:
         nthreads=num_sim_threads,
-        fep_dir=run_path+"/complex/fep/simulation/{state}",
-        top_dir=run_path+"/complex/fep/fep-topology/"
+        run_dir=run_path+"/complex/fep/simulation/{state}/emin",
+        gmx_template=gromacs_run_script
     output:
-        gro=run_path+"/complex/fep/simulation/{state}/em/emin.gro"
+        gro=run_path+"/complex/fep/simulation/{state}/emin/emin.gro"
     threads: num_sim_threads
     retries: num_retries
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.fep_dir}/em/em.mdp -c {params.top_dir}/complex.gro \
-                    -p {params.top_dir}/complex_boresch.top -o {params.fep_dir}/em/emin.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.fep_dir}/em/emin -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_emin.sh   
+            ./job_emin.sh {params.nthreads} emin {input.top} {input.gro}
         '''
 
 rule fep_run_complex_nvt_heat:
     input:
+        top=run_path+"/complex/fep/fep-topology/complex_boresch.top",
         mdp=run_path+"/complex/fep/simulation/{state}/nvt/nvt.mdp",
-        gro=run_path+"/complex/fep/simulation/{state}/em/emin.gro"
+        gro=run_path+"/complex/fep/simulation/{state}/emin/emin.gro"
     params:
         nthreads=num_sim_threads,
-        fep_dir=run_path+"/complex/fep/simulation/{state}",
-        top_dir=run_path+"/complex/fep/fep-topology/"
+        run_dir=run_path+"/complex/fep/simulation/{state}/nvt",
+        gmx_template=gromacs_run_script
     output:
         gro=run_path+"/complex/fep/simulation/{state}/nvt/nvt.gro",
         cpt=run_path+"/complex/fep/simulation/{state}/nvt/nvt.cpt"
@@ -41,21 +45,21 @@ rule fep_run_complex_nvt_heat:
     retries: num_retries
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.fep_dir}/nvt/nvt.mdp -c {input.gro} -r {input.gro} \
-                    -p {params.top_dir}/complex_boresch.top -o {params.fep_dir}/nvt/nvt.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.fep_dir}/nvt/nvt -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_nvt.sh   
+            ./job_nvt.sh {params.nthreads} nvt {input.top} {input.gro}
         '''
 
 rule run_fep_complex_npt_eq1:
     input:
+        top=run_path+"/complex/fep/fep-topology/complex_boresch.top",
         mdp=run_path+"/complex/fep/simulation/{state}/npt/npt.mdp",
         gro=run_path+"/complex/fep/simulation/{state}/nvt/nvt.gro",
         cpt=run_path+"/complex/fep/simulation/{state}/nvt/nvt.cpt"
     params:
         nthreads=num_sim_threads,
-        fep_dir=run_path+"/complex/fep/simulation/{state}",
-        top_dir=run_path+"/complex/fep/fep-topology/"
+        run_dir=run_path+"/complex/fep/simulation/{state}/npt",
+        gmx_template=gromacs_cont_script
     output:
         gro=run_path+"/complex/fep/simulation/{state}/npt/npt.gro",
         cpt=run_path+"/complex/fep/simulation/{state}/npt/npt.cpt"
@@ -63,21 +67,21 @@ rule run_fep_complex_npt_eq1:
     retries: num_retries
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.fep_dir}/npt/npt.mdp -c {input.gro} -t {input.cpt} \
-                    -r {input.gro} -p {params.top_dir}/complex_boresch.top -o {params.fep_dir}/npt/npt.tpr -maxwarn 3
-            gmx mdrun -deffnm {params.fep_dir}/npt/npt -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_npt.sh   
+            ./job_npt.sh {params.nthreads} npt {input.top} {input.gro} {input.cpt}
         '''
 
 rule fep_run_complex_npt_eq2:
     input:
+        top=run_path+"/complex/fep/fep-topology/complex_boresch.top",
         mdp=run_path+"/complex/fep/simulation/{state}/npt-norest/npt-norest.mdp",
         gro=run_path+"/complex/fep/simulation/{state}/npt/npt.gro",
         cpt=run_path+"/complex/fep/simulation/{state}/npt/npt.cpt"
     params:
-        nthreads=num_sim_threads,
-        fep_dir=run_path+"/complex/fep/simulation/{state}",
-        top_dir=run_path+"/complex/fep/fep-topology/"
+        nthreads=num_sim_threads,        
+        run_dir=run_path+"/complex/fep/simulation/{state}/npt-norest",
+        gmx_template=gromacs_cont_script
     output:
         gro=run_path+"/complex/fep/simulation/{state}/npt-norest/npt-norest.gro",
         cpt=run_path+"/complex/fep/simulation/{state}/npt-norest/npt-norest.cpt"
@@ -85,21 +89,21 @@ rule fep_run_complex_npt_eq2:
     retries: num_retries
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.fep_dir}/npt-norest/npt-norest.mdp -c {input.gro} -t {input.cpt} \
-                    -p {params.top_dir}/complex_boresch.top -o {params.fep_dir}/npt-norest/npt-norest.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.fep_dir}/npt-norest/npt-norest -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_npt_norest.sh   
+            ./job_npt_norest.sh {params.nthreads} npt-norest {input.top} {input.gro} {input.cpt}
         '''
 
 rule fep_run_complex_prod:
     input:
+        top=run_path+"/complex/fep/fep-topology/complex_boresch.top",
         mdp=run_path+"/complex/fep/simulation/{state}/prod/prod.mdp",
         gro=run_path+"/complex/fep/simulation/{state}/npt-norest/npt-norest.gro",
         cpt=run_path+"/complex/fep/simulation/{state}/npt-norest/npt-norest.cpt"
     params:
         nthreads=num_sim_threads,
-        fep_dir=run_path+"/complex/fep/simulation/{state}",
-        top_dir=run_path+"/complex/fep/fep-topology/"
+        run_dir=run_path+"/complex/fep/simulation/{state}/prod",
+        gmx_template=gromacs_cont_script
     output:
         gro=run_path+"/complex/fep/simulation/{state}/prod/prod.gro",
         xvg=run_path+"/complex/fep/simulation/{state}/prod/prod.xvg"
@@ -107,8 +111,7 @@ rule fep_run_complex_prod:
     retries: num_retries
     shell:
         '''
-            export OMP_NUM_THREADS={params.nthreads}
-            gmx grompp -f {params.fep_dir}/prod/prod.mdp -c {input.gro} -t {input.cpt} \
-                    -p {params.top_dir}/complex_boresch.top -o {params.fep_dir}/prod/prod.tpr -maxwarn 2
-            gmx mdrun -deffnm {params.fep_dir}/prod/prod -ntomp {params.nthreads}
+            cd {params.run_dir}
+            cp {params.gmx_template} ./job_prod.sh   
+            ./job_prod.sh {params.nthreads} prod {input.top} {input.gro} {input.cpt}  
         '''

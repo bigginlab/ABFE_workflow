@@ -18,7 +18,7 @@ if __name__ == "__main__":
     n_cores_per_job = 8
     num_jobs = 40 # spawn n jobs in parallel
     num_replicas=1 # how often shall the calculation be repeated?
-    submit=True  # directly submit to the slurm queue
+    submit=False  # directly submit to the slurm queue
 
     
     cluster_config ={

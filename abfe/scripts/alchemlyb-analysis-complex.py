@@ -40,7 +40,7 @@ if __name__ == "__main__":
     #include boresch correction
     col = []
     res_V = float(np.loadtxt(args.boresch_data))
-    for row in res_df.index():
+    for row in res_df.index:
         if(row == "sys"):
             col.append("ligand")
         elif(row == "windows"):
