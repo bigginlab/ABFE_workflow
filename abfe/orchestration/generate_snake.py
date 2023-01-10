@@ -1,10 +1,13 @@
 from abfe import rules
 
 
-def get_eq_res():
+def get_eq_res(gpu:bool=True):
+
+    equil_snake = rules.equilibration_path
+        
     cmd = [
     "#Do Equilibration",
-    "include: \'"+rules.equilibration_path+"\'",
+    "include: \'"+equil_snake+"\'",
     "rule check_equilib:",
     "   input:",
     "       gro_complex=run_path+\"/complex/equil-mdsim/boreschcalc/ClosestRestraintFrame.gro\",",
@@ -17,9 +20,12 @@ def get_eq_res():
     return "\n".join(cmd)
 
 def get_fep_res()->str:
+    
+    fep_snake = rules.fep_path
+        
     cmd =[
     "#Do FEP",
-    "include: \'"+rules.fep_path+"\'",
+    "include: \'"+fep_snake+"\'",
     "rule all:",
     "    input:",
     "        dG_path=run_path+\"/dG_results.csv\"",
@@ -45,8 +51,7 @@ def get_all_eq_fep_res()->str:
     return "\n".join(cmd)
 
 def generate_snake_file(out_file_path:str, 
-        conf_file_path:str, 
-        code_file_path:str):
+        conf_file_path:str):
     
     
     

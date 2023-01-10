@@ -11,15 +11,32 @@ class scheduler():
         self.time=time
         self.partition=partition
     
-    def generate_scheduler_file(self, out_prefix):           
-        file_str = "\n".join([
+    def generate_scheduler_file(self, out_prefix):    
+        if(isinstance(self.out_job_path, str)):
+            self.out_job_path = [self.out_job_path]
+        
+        file_str = [
             "#!/bin/env bash",
             "",
             #"conda activate abfe",
+            ]
+        for i, job_path in enumerate(self.out_job_path):       
+            basename = os.path.basename(job_path).replace(".sh", "")
+            file_str.extend([
             "",
-            "sbatch -p cpu -c "+str(self.n_cores)+" -J "+str(out_prefix)+"_scheduler --time="+self.time+" "+self.out_job_path
+            "cd "+os.path.dirname(job_path),
+            "job"+str(i)+"=$(sbatch -p cpu -c "+str(self.n_cores)+" -J "+str(out_prefix+"_"+basename)+"_scheduler --time="+self.time+" "+job_path+")",
+            "jobID"+str(i)+"=$(echo $job"+str(i)+" | awk '{print $4}')",
             ])
         
+        if(len(self.out_job_path)>1):
+            file_str.append("\n")
+            file_str.append("echo "+":".join(["${jobID"+str(i)+"}" for i in range(len(self.out_job_path))]))
+            file_str.append("finalJOB=$(sbatch -p cpu  --dependency=afterok:"+":".join(["${jobID"+str(i)+"}" for i in range(len(self.out_job_path))])+" -c "+str(self.n_cores)+" -J "+str(out_prefix+"_final_ana")+"_scheduler --time="+self.time+" "+self._final_job_path+")")
+            file_str.append("finaljobID"+str(i)+"=$(echo $finalJOB"+str(i)+" | awk '{print $4}')")
+            file_str.append("echo \$\{finaljobID\}")
+            
+        file_str = "\n".join(file_str)
         file_io = open(self.out_scheduler_path, "w")
         file_io.write(file_str)
         file_io.close()
@@ -27,7 +44,7 @@ class scheduler():
         
         return self.out_scheduler_path
         
-    def generate_job_file(self, out_prefix, cluster_conf_path:str, cluster_config:dict=None, cluster=False, num_jobs:int=1, latency_wait:int=60):
+    def generate_job_file(self, out_prefix, cluster_conf_path:str, cluster_config:dict=None, cluster=False, num_jobs:int=1, latency_wait:int=60, snake_job=""):
         if(cluster):
             root_dir = os.path.dirname(cluster_conf_path)
             slurm_logs = os.path.dirname(cluster_conf_path)+"/slurm_logs"
@@ -39,7 +56,7 @@ class scheduler():
                     "time": "48:00:00",
                     "mem": "20GB",
                 }
-            if(not all([x in cluster_config for x in ["partition", "time", "mem"]])):
+            if(not all([x in cluster_config for x in ["partition", "time"]])):
                 raise ValueError("missing keys in cluster_config! at least give: [\"partition\", \"time\", \"mem\"] ", cluster_config)
             
             self.n_cores=1
@@ -58,13 +75,13 @@ class scheduler():
             #TODO: change this here, such each job can access resource from cluster-config!
             file_str = "\n".join([
                 "#!/bin/env bash",
-                "snakemake --cluster \"sbatch "+cluster_options+"\" --cluster-config "+cluster_conf_path+" --jobs "+str(num_jobs)+" --latency-wait "+str(latency_wait)+" --rerun-incomplete "
+                "snakemake --cluster \"sbatch "+cluster_options+"\" --cluster-config "+cluster_conf_path+" --jobs "+str(num_jobs)+" --latency-wait "+str(latency_wait)+" --rerun-incomplete "+snake_job
             ])
             
         else:
             file_str = "\n".join([
                 "#!/bin/env bash",
-                "snakemake -c "+str(self.n_cores)+"  --latency-wait "+str(latency_wait)+" --rerun-incomplete "
+                "snakemake -c "+str(self.n_cores)+"  --latency-wait "+str(latency_wait)+" --rerun-incomplete "+snake_job
             ])
         
         file_io = open(self.out_job_path, "w")
@@ -77,11 +94,7 @@ class scheduler():
     def schedule_run(self)->int:
         orig_path = os.getcwd()
         os.chdir(self.out_dir_path)
-        out_script = os.path.basename(self.out_scheduler_path)
-        out = subprocess.getoutput("./"+out_script)
-        print()
-        print(out)
-        print()
+        out = subprocess.getoutput(self.out_scheduler_path)
         job_id = int(out.split()[-1])
         os.chdir(orig_path)
         

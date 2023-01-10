@@ -31,7 +31,7 @@ rule fep_setup_ligand:
             mkdir -p {params.sim_dir}/template
             cp -r {params.template_dir}/template/* {params.sim_dir}/template
 
-            cp -r {input.ligand_top} {params.sim_dir}/fep-topology
+            cp -r {input.ligand_top}/* {params.sim_dir}/fep-topology
             cp {input.equil_gro} {params.sim_dir}/fep-topology/equil.gro
 
             # create simulation directory

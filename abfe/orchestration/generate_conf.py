@@ -1,10 +1,14 @@
 import json 
 import numpy as np
+from abfe import template
 
 def generate_ligand_conf(out_path:str, code_path:str, run_path:str,  input_data_path:str,
                          num_replica:int=1, num_sim_threads:int=8,
                          n_vdw_windows_complex:int=21, n_rest_windows_complex:int=11, n_coul_windows_complex:int=11,
-                         n_vdw_windows_ligand:int=11,  n_coul_windows_ligand:int=11,):
+                         n_vdw_windows_ligand:int=11,  n_coul_windows_ligand:int=11,
+                         gmx_run_kernel_path:str=template.gmx_submit_kernels_path+"/def_cpu_job.sh" ,
+                         gmx_cont_kernel_path:str=template.gmx_submit_kernels_path+"/def_cpu_job_cont.sh"):
+    ## Ugly implementation every defined variable is added to conf! :)
   
     ## get all the window ids
     lam_vdw_complex_range = list(np.round(np.linspace(0,1, n_vdw_windows_complex),2))
@@ -34,6 +38,9 @@ def generate_ligand_conf(out_path:str, code_path:str, run_path:str,  input_data_
     run_path = run_path
     num_retries = 3
 
+    gmx_run_kernel_path= gmx_run_kernel_path
+    gmx_cont_kernel_path = gmx_cont_kernel_path
+    
     conf_settings = { k:v for k,v in locals().items() if not k.startswith("__")}
     
     out_IO = open(out_path,"w")

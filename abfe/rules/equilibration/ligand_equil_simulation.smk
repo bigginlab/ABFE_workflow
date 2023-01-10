@@ -1,10 +1,10 @@
-from abfe import template
 
 run_path = config["run_path"]
 num_sim_threads = config['num_sim_threads']
 
-gromacs_run_script=template.gmx_submit_kernels_path+"/def_cpu_job.sh"
-gromacs_cont_script=template.gmx_submit_kernels_path+"/def_cpu_job_cont.sh"
+gromacs_run_script=config['gmx_run_kernel_path']
+gromacs_cont_script=config['gmx_cont_kernel_path']
+
 
 rule equil_run_ligand_emin:
     input:
@@ -20,7 +20,7 @@ rule equil_run_ligand_emin:
     shell:
         '''
             cd {params.run_dir}
-            cp {params.gmx_template} ./emin.sh   
+            cp {params.gmx_template} ./job_emin.sh   
             ./job_emin.sh {params.nthreads} emin {input.top} {input.gro}
         '''
 
@@ -60,7 +60,7 @@ rule equil_run_ligand_npt_eq1:
         '''
             cd {params.run_dir}
             cp {params.gmx_template} ./job_npt_eq1.sh   
-            ./job_npt_eq1.sh {params.nthreads} npt_equil1 {input.top} {input.gro}
+            ./job_npt_eq1.sh {params.nthreads} npt_equil1 {input.top} {input.gro} {input.cpt}
         '''
 
 rule equil_run_ligand_npt_eq2:
@@ -80,5 +80,5 @@ rule equil_run_ligand_npt_eq2:
         '''
             cd {params.run_dir}
             cp {params.gmx_template} ./job_npt_eq2.sh   
-            ./job_npt_eq2.sh {params.nthreads} npt_equil2 {input.top} {input.gro} 
+            ./job_npt_eq2.sh {params.nthreads} npt_equil2 {input.top} {input.gro} {input.cpt}
         '''

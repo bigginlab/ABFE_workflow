@@ -1,12 +1,9 @@
-from abfe import scripts
-from abfe import template
-
 run_path = config["run_path"]
 num_retries = config['num_retries']
 num_sim_threads = config['num_sim_threads']
 
-gromacs_run_script=template.gmx_submit_kernels_path+"/def_cpu_job.sh"
-gromacs_cont_script=template.gmx_submit_kernels_path+"/def_cpu_job_cont.sh"
+gromacs_run_script=config['gmx_run_kernel_path']
+gromacs_cont_script=config['gmx_cont_kernel_path']
 
 
 rule fep_run_complex_emin:

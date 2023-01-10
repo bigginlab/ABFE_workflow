@@ -1,4 +1,5 @@
 from abfe import scripts
+
 run_path = config["run_path"]
 complex_windows = config["complex_windows"]
 

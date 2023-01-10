@@ -25,8 +25,7 @@ def build_run_ligand(out_root_path:str, input_ligand_path:str, n_cores:int=1, nu
         conf_path = out_path+"/snake_conf.json"
 
         generate_snake.generate_snake_file(out_file_path=snake_path, 
-            conf_file_path=conf_path, 
-            code_file_path=code_path)
+            conf_file_path=conf_path)
             
         generate_conf.generate_ligand_conf(out_path=conf_path,
                                         run_path=out_path,
@@ -45,7 +44,9 @@ def build_run_ligand(out_root_path:str, input_ligand_path:str, n_cores:int=1, nu
             out = scheduler.schedule_run()
             print("submitted "+str(input_ligand_path), out)
             return out
-        return None
+        else:
+            print("did not submit")
+            return None
     
 def calculate_all_ligands(input_ligand_paths:List[str], out_root_path:str,
                          num_replicas:int, cluster_config:dict, submit:bool, num_jobs:int,  num_max_thread:int):
@@ -54,5 +55,6 @@ def calculate_all_ligands(input_ligand_paths:List[str], out_root_path:str,
         job_id = build_run_ligand(out_root_path=out_root_path, input_ligand_path=ligand_id,num_max_thread=num_max_thread,
                                            num_replicas=num_replicas, cluster_config=cluster_config, submit=submit, num_jobs=num_jobs)
         job_ids.append(job_id)
-        
+    
+    print("ALL Jobs:", job_ids)
     return job_ids

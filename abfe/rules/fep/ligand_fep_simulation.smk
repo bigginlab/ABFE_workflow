@@ -1,5 +1,3 @@
-from abfe import template
-
 run_path = config["run_path"]
 simulation_dir = run_path+"/ligand/fep/simulation"
 top_dir = run_path+"/ligand/fep/fep-topology"
@@ -7,8 +5,9 @@ top_dir = run_path+"/ligand/fep/fep-topology"
 num_sim_threads = config['num_sim_threads']
 num_retries = config['num_retries']
 
-gromacs_run_script=template.gmx_submit_kernels_path+"/def_cpu_job.sh"
-gromacs_cont_script=template.gmx_submit_kernels_path+"/def_cpu_job_cont.sh"
+gromacs_run_script=config['gmx_run_kernel_path']
+gromacs_cont_script=config['gmx_cont_kernel_path']
+
 
 rule fep_run_ligand_emin:
     input:
@@ -103,7 +102,7 @@ rule fep_run_ligand_prod:
         cpt=simulation_dir+"/{state}/npt-norest/npt-norest.cpt"
     params:
         nthreads=num_sim_threads,
-        run_dir=simulation_dir+"/{state}",
+        run_dir=simulation_dir+"/{state}/prod",
         gmx_template=gromacs_cont_script
     output:
         gro=simulation_dir+"/{state}/prod/prod.gro",

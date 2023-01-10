@@ -36,7 +36,7 @@ rule fep_setup_complex:
         '''
             mkdir -p {params.sim_dir}/template
             cp -r {params.template_dir}/template/* {params.sim_dir}/template
-            cp -r {input.complex_top} {params.sim_dir}/fep-topology
+            cp -r {input.complex_top}/* {params.sim_dir}/fep-topology
             cp {input.boresch_gro} {params.sim_dir}/fep-topology/complex.gro
             cat {params.sim_dir}/fep-topology/complex.top {input.boresch_top} > {params.sim_dir}/fep-topology/complex_boresch.top
 
