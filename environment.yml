@@ -11,10 +11,10 @@ dependencies:
   - numpy
   - pandas
   - parmed
-  - python
+  - python>=3.8
   - scipy
   - snakemake=7.8.5
   - pip:
-    - alchemlyb
-    - pymbar
+    - alchemlyb==2.0.0
+    - pymbar==4.0.1
     - MDRestraintsGenerator
