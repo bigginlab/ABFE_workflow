@@ -48,4 +48,4 @@ rule fep_ana_get_dg_ligand:
     output:
         complex_var=run_path+"/ligand/fep/ana/dg_results.csv"
     shell:
-        "python {params.script_dir}/alchemlyb-analysis-ligand.py --xvgpath {input.xvg_dir} --confpath {params.conf_path} --outpath {params.out_dir}"
+        "python {params.script_dir}/free_energy/calculate_ABFE_transformation_dG.py --xvg_path {input.xvg_dir} --conf_path {params.conf_path} --out_path {params.out_dir} --system_name ligand"

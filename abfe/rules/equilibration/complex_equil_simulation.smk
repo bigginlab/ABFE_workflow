@@ -137,5 +137,5 @@ rule equil_run_complex_get_boresch_restraints:
         boresch_dG_off=run_path+"/complex/equil-mdsim/boreschcalc/dG_off.dat"
     shell:
         '''
-            python {params.code_path}/boresch.py --top {input.tpr} --trj {input.xtc} --outpath {params.run_dir}
+            python {params.code_path}/preparation/generate_boresch_restraints.py --top {input.tpr} --trj {input.xtc} --outpath {params.run_dir}
         '''

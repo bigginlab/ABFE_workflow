@@ -8,7 +8,7 @@
 ; RUN CONTROL
 ;----------------------------------------------------
 integrator   = sd            ; stochastic leap-frog integrator
-nsteps       = 5000000       ; 4 * 5 000 000 fs = 20 000 ps = 20 ns
+nsteps       = 1250000       ; 4 * 1 250 000 fs = 5 000 ps = 5 ns
 dt           = 0.004         ; 4 fs
 comm-mode    = Linear        ; remove center of mass translation
 nstcomm      = 50            ; frequency for center of mass motion removal

@@ -25,17 +25,15 @@ class scheduler():
             file_str.extend([
             "",
             "cd "+os.path.dirname(job_path),
-            "job"+str(i)+"=$(sbatch -p cpu -c "+str(self.n_cores)+" -J "+str(out_prefix+"_"+basename)+"_scheduler --time="+self.time+" "+job_path+")",
+            "job"+str(i)+"=$(sbatch -p cpu -c "+str(self.n_cores)+" -J "+str(out_prefix+"_"+basename)+"_scheduler "+job_path+")",
             "jobID"+str(i)+"=$(echo $job"+str(i)+" | awk '{print $4}')",
             ])
         
         if(len(self.out_job_path)>1):
             file_str.append("\n")
             file_str.append("echo "+":".join(["${jobID"+str(i)+"}" for i in range(len(self.out_job_path))]))
-            file_str.append("finalJOB=$(sbatch -p cpu  --dependency=afterok:"+":".join(["${jobID"+str(i)+"}" for i in range(len(self.out_job_path))])+" -c "+str(self.n_cores)+" -J "+str(out_prefix+"_final_ana")+"_scheduler --time="+self.time+" "+self._final_job_path+")")
-            file_str.append("finaljobID"+str(i)+"=$(echo $finalJOB"+str(i)+" | awk '{print $4}')")
-            file_str.append("echo \$\{finaljobID\}")
-            
+            file_str.append("sbatch -p cpu  --dependency=afterok:"+":".join(["${jobID"+str(i)+"}" for i in range(len(self.out_job_path))])+" -c "+str(self.n_cores)+" -J "+str(out_prefix+"_final_ana")+"_scheduler "+self._final_job_path)
+        
         file_str = "\n".join(file_str)
         file_io = open(self.out_scheduler_path, "w")
         file_io.write(file_str)
@@ -54,9 +52,10 @@ class scheduler():
                 cluster_config ={
                     "partition": "cpu",
                     "time": "48:00:00",
-                    "mem": "20GB",
+                    "mem": "5000",
                 }
-            if(not all([x in cluster_config for x in ["partition", "time"]])):
+                
+            if(not all([x in cluster_config for x in ["partition", "time", "mem"]])):
                 raise ValueError("missing keys in cluster_config! at least give: [\"partition\", \"time\", \"mem\"] ", cluster_config)
             
             self.n_cores=1

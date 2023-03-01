@@ -2,6 +2,7 @@
 import os
 from typing import List
 
+from abfe import template
 from abfe.orchestration import generate_conf, generate_snake, generate_scheduler
 
 
@@ -14,39 +15,50 @@ def build_run_ligand(out_root_path:str, input_ligand_path:str, n_cores:int=1, nu
     
     if(not os.path.isdir(ligand_path)):
         os.mkdir(ligand_path)
-
+                
+        
+    outs = []
     for num_replica in range(1, num_replicas+1):
         out_path = ligand_path+"/"+str(num_replica)
         if(not os.path.isdir(out_path)):
             os.mkdir(out_path)
 
-        #set files:    
+        #set global files:    
         snake_path = out_path+"/Snakefile"
         conf_path = out_path+"/snake_conf.json"
 
         generate_snake.generate_snake_file(out_file_path=snake_path, 
             conf_file_path=conf_path)
-            
-        generate_conf.generate_ligand_conf(out_path=conf_path,
-                                        run_path=out_path,
-                                        num_sim_threads=num_max_thread,
-                                        input_data_path=input_ligand_path,
-                                        num_replica=num_replica,
-                                        code_path=code_path
-                                        )
         
+        #build scheduler class
         scheduler = generate_scheduler.scheduler(out_dir_path=out_path, n_cores=n_cores)
-        job_file_path = scheduler.generate_job_file(cluster=True, cluster_config=cluster_config, cluster_conf_path=out_path+"/cluster_conf.json", out_prefix=prefix, num_jobs=num_jobs)
+
+        generate_conf.generate_ligand_conf(out_path=conf_path,
+                        run_path=out_path,
+                        num_sim_threads=num_max_thread,
+                        input_data_path=input_ligand_path,
+                        num_replica=num_replica,
+                        code_path=code_path
+                        )
+            
+        job_file_path = scheduler.generate_job_file(cluster=True, cluster_config=cluster_config, cluster_conf_path=out_path+"/cluster_conf.json",
+                                                    out_prefix=prefix, num_jobs=num_jobs)   
+        scheduler.out_job_path = [job_file_path]
+
+        scheduler._final_job_path = job_file_path
         sched_file_path = scheduler.generate_scheduler_file( out_prefix=prefix,)
-        print(job_file_path, sched_file_path)
+        
+        print(scheduler.out_job_path, sched_file_path)
         
         if(submit):
             out = scheduler.schedule_run()
             print("submitted "+str(input_ligand_path), out)
-            return out
-        else:
-            print("did not submit")
-            return None
+            outs.append(out)
+            
+    if(submit):
+        return outs
+    else:
+        return None
     
 def calculate_all_ligands(input_ligand_paths:List[str], out_root_path:str,
                          num_replicas:int, cluster_config:dict, submit:bool, num_jobs:int,  num_max_thread:int):
@@ -55,6 +67,5 @@ def calculate_all_ligands(input_ligand_paths:List[str], out_root_path:str,
         job_id = build_run_ligand(out_root_path=out_root_path, input_ligand_path=ligand_id,num_max_thread=num_max_thread,
                                            num_replicas=num_replicas, cluster_config=cluster_config, submit=submit, num_jobs=num_jobs)
         job_ids.append(job_id)
-    
-    print("ALL Jobs:", job_ids)
+        
     return job_ids

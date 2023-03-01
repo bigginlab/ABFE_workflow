@@ -4,7 +4,7 @@ from abfe import rules
 def get_eq_res(gpu:bool=True):
 
     equil_snake = rules.equilibration_path
-        
+    
     cmd = [
     "#Do Equilibration",
     "include: \'"+equil_snake+"\'",
