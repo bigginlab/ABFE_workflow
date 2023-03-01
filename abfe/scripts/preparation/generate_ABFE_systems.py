@@ -1,4 +1,4 @@
-#!/home/magarkar/anaconda3/envs/biosimspace/bin/python
+#!/user/bin python
 
 import subprocess, os, sys, argparse, shutil, glob
 
@@ -157,9 +157,6 @@ if __name__ == "__main__":
     parser.add_argument('-c', "--cofactor_sdf_path", help='Input cofactor file', required=False, default=None)
     parser.add_argument('-o', "--output_dir_path", help='Output directory', required=False, default=".")
 
-
-    #parser.add_argument('-time',help='Simulation time in nanosecnds',type=int)
-    #parser.add_argument('-mode',help='Choose one from', choices=['simba', 'ligand'])
     args = parser.parse_args()
     
     print("Input: ", args.p, args.l, args.c, args.o)

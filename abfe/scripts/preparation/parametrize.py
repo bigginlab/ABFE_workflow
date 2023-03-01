@@ -1,4 +1,4 @@
-#!/home/magarkar/anaconda3/envs/openff/bin/python
+#!/user/bin python
 
 import argparse,os,subprocess
 from openff.toolkit.topology import Molecule
