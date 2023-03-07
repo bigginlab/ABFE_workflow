@@ -8,20 +8,39 @@ input_protein_pdb = config['input_protein_pdb_path']
 input_ligand_sdfs = config['input_ligands_sdf_path']
 input_cofactor_sdf = config['input_cofactor_sdf_path']
 
+rule gather_files:
+    input:
+        ligand_sdfs=expand("{input_ligand_sdfs}", input_ligand_sdfs=input_ligand_sdfs)
+    params:
+        out_dir = approach_path+"/orig_input"
+    output:
+        out_files = expand(approach_path+"/orig_input/{ligand_name}.sdf", ligand_name=ligand_names)
 
-rule build_ligand_systems:
+    shell:
+        """
+            mkdir {params.out_dir} -p
+            ligand_files="{input.ligand_sdfs}"
+            echo "$ligand_files"
+
+            for ligand_sdf in "$ligand_files"
+            do
+                cp $ligand_sdf {params.out_dir}
+            done
+        """
+
+rule build_ligand_system:
     input:
         protein_pdb= input_protein_pdb,
-        ligand_sdf= expand("{input_ligand_sdf}", input_ligand_sdf=input_ligand_sdfs),
-        output_dir= expand(approach_path+"/{ligand_name}/input",  ligand_name=ligand_names)
+        ligand_sdf=approach_path+"/orig_input/{ligand_name}.sdf",
+        output_dir= approach_path+"/{ligand_name}/input"
     params:
         cofactor_sdf= str(input_cofactor_sdf),
         script_dir = scripts.root_path
     output:
-        out_ligand_gro=expand(approach_path+"/{ligand_name}/input/ligand/ligand.gro", ligand_name=ligand_names),
-        out_ligand_top=expand(approach_path+"/{ligand_name}/input/ligand/ligand.top", ligand_name=ligand_names),
-        out_complex_gro=expand(approach_path+"/{ligand_name}/input/complex/complex.gro", ligand_name=ligand_names),
-        out_complex_top=expand(approach_path+"/{ligand_name}/input/complex/complex.top", ligand_name=ligand_names)
+        out_ligand_gro=approach_path+"/{ligand_name}/input/ligand/ligand.gro",
+        out_ligand_top=approach_path+"/{ligand_name}/input/ligand/ligand.top",
+        out_complex_gro=approach_path+"/{ligand_name}/input/complex/complex.gro",
+        out_complex_top=approach_path+"/{ligand_name}/input/complex/complex.top"
     shell:
         """
             python {params.script_dir}/preparation/generate_ABFE_systems.py --ligand_sdf_dir {input.ligand_sdf} \

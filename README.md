@@ -31,8 +31,6 @@ optional arguments:
   -nr NUMBER_OF_REPLICATES, --number_of_replicates NUMBER_OF_REPLICATES
                         Number of replicates
   -submit               Will automatically submit the ABFE calculations
-  -gpu                  shall gpus be used for the submissions?
-  -hybrid               hybrid flag executes complex jobs on gpu and ligand jobs on cpu (requires gpu flag)
 ```
 
   
@@ -52,7 +50,7 @@ Running an ABFE Campaign from Bash:
   python ABFE_Calculator.py -p <path>/receptor.pdb \
                     -l <path>/myligands \
                     -o <path>/Out  \
-                    -gpu -hybrid -submit -nc 8
+                    -submit
 ```
 
 
@@ -70,20 +68,20 @@ out_folder = "./Out"
 calculate_abfe(protein_pdb_path=receptor_pdb, 
                ligand_sdf_path=ligand_sdfs, 
                out_root_folder_path=out_folder,
-               use_gpu=True, hybrid_job=True,
-               submit=True, n_cores_per_job=8
+               submit=True
                )
 
 ```
 
 ### Input
 The input is suggested to be structured as follows for the commandline option:
-  * \<ligands\>
-     * ligand1.sdf
-     * ligand2.sdf
-     * ligand3.sdf
-     * ...
-   * receptor.pdb
+  * Input
+    * ligands
+       * ligand1.sdf
+       * ligand2.sdf
+       * ligand3.sdf
+       * ...
+    * receptor.pdb
 
 For the python call: 
  * ligand_sdfs:List[str] - paths to sdf files
@@ -95,16 +93,12 @@ For the python call:
 
 
 ## Install:
-**For Code Development only!** The package required environment can be installed with the provided environment:
-
+The package can be installed like the following script:
 ```
   cd ABFE_workflow
   conda env create --file ./environment.yml
   conda activate abfe
   conda develop ${PWD}
 ```
-
-you can skip the conda environment installation step and conda develop command, by simply using the already existing environment `/apps/prod/COMPCHEM/compchem/condaenvs/abfe`
-
 
 ![](.img/dag-reduced.png)
