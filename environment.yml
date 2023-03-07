@@ -25,7 +25,6 @@ dependencies:
   - parmed
   - pdbfixer
   - biosimspace
-  - sire=2023.0.2
   - openff-toolkit
   - openff-interchange
 

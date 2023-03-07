@@ -8,6 +8,7 @@ input_protein_pdb = config['input_protein_pdb_path']
 input_ligand_sdfs = config['input_ligands_sdf_path']
 input_cofactor_sdf = config['input_cofactor_sdf_path']
 
+
 rule gather_files:
     input:
         ligand_sdfs=expand("{input_ligand_sdfs}", input_ligand_sdfs=input_ligand_sdfs)
