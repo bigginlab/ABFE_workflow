@@ -2,11 +2,10 @@
 define restraints for ligand in protein during the uncoupling.
 """
 
+import argparse
 
 import MDAnalysis as mda
 from MDRestraintsGenerator import search, restraints
-import argparse
-import warnings
 
 if __name__ == "__main__":
 
@@ -28,6 +27,7 @@ if __name__ == "__main__":
                             help='output path for writing files')
         args = parser.parse_args()
         return args
+
 
     args = parse_args()
 

@@ -2,14 +2,13 @@
 calculate dF for ligand system
 """
 import math
-import warnings
 import os
+import warnings
 
 import pandas as pd
-
+from alchemlyb.estimators import TI, MBAR
 from alchemlyb.parsing.gmx import extract_dHdl, extract_u_nk
 from alchemlyb.preprocessing import statistical_inefficiency, slicing
-from alchemlyb.estimators import TI, MBAR
 
 
 def run_alchemlyb(xvgs: list, overlap_path: str = None, lower: int = None,
@@ -64,7 +63,7 @@ def run_alchemlyb(xvgs: list, overlap_path: str = None, lower: int = None,
         else:
             sub_steps.append(int(step_cutoff))
 
-    print(f"number of samples per window: {[int(len(df)/i) for i in sub_steps]}")
+    print(f"number of samples per window: {[int(len(df) / i) for i in sub_steps]}")
 
     dhdls = pd.concat([slicing(extract_dHdl(xvg, T=temperature), lower=lower,
                                upper=upper, step=step)
@@ -85,12 +84,12 @@ def run_alchemlyb(xvgs: list, overlap_path: str = None, lower: int = None,
 
 
 def analyze_ligand(prefix: str,
-                   system_steps_windows:dict,
-                   system_name:str ="test",
+                   system_steps_windows: dict,
+                   system_name: str = "test",
                    xvg_prefix: str = 'dhdl',
                    lower: int = None, upper: int = None,
                    min_samples: int = None,
-                   temperature: float = 298.15)-> pd.DataFrame:
+                   temperature: float = 298.15) -> pd.DataFrame:
     """
     Function to run an FEP analysis for an FEP cycle
 
@@ -114,25 +113,25 @@ def analyze_ligand(prefix: str,
     """
 
     system_results = {}
-    
+
     for step, windows in system_steps_windows.items():
         xvgs = [f'{prefix}/{step}/{xvg_prefix}.{i}.xvg'
                 for i in range(windows)]
-        
-        #check if all windows present:
+
+        # check if all windows present:
         for xvg_path in xvgs:
-            if(not os.path.exists(xvg_path)):
-                raise IOError("Expected xvg-path: ", xvg_path+" \n as there should be "+str(windows)+ " windows")
+            if (not os.path.exists(xvg_path)):
+                raise IOError("Expected xvg-path: ", xvg_path + " \n as there should be " + str(windows) + " windows")
         dG = run_alchemlyb(xvgs, lower=lower, upper=upper,
                            min_samples=min_samples, temperature=temperature)
         ddG_estimator = abs(dG['MBAR'][0] - dG['TI'][0])
-        
+
         if ddG_estimator > 0.5:
             wmsg = (f'ddG_estimator > 0.5 kcal/mol: {ddG_estimator} '
                     f'{prefix}/{step}')
             warnings.warn(wmsg)
 
-        system_results.update({step.replace("-xvg",""):{"MBAR":dG['MBAR'][0], "TI":dG['TI'][0], "sys":system_name, "windows": windows}})
+        system_results.update({step.replace("-xvg", ""): {"MBAR": dG['MBAR'][0], "TI": dG['TI'][0], "sys": system_name, "windows": windows}})
         df = pd.DataFrame(system_results)
 
     return df

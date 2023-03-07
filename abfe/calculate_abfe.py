@@ -1,67 +1,71 @@
-
+import glob
 import os
-import subprocess
-import multiprocessing
-
 from typing import List
 
-from abfe.scripts.preparation.generate_ABFE_systems import prepare_input_files
-from abfe.orchestration.build_and_run_ligands import calculate_all_ligands
+from abfe.orchestration.build_approach_flow import build_approach_flow
+from abfe.orchestration.build_ligand_flow import build_ligand_flows
 from abfe.scripts import final_receptor_results
 
 
-def calculate_abfe(protein_pdb_path:str, ligand_sdf_paths: List[str], out_root_folder_path:str, cofactor_sdf_path:str=None,
-             n_cores_per_job:int = 8, num_jobs:int = 40, num_replicas:int=1, 
-             submit:bool=False, use_gpu:bool=False, hybrid_job:bool=False, cluster_config:dict={}, force_parametrize:bool=False):
+def calculate_abfe(protein_pdb_path: str, ligand_sdf_paths: List[str], out_root_folder_path: str,
+                   approach_name: str = "", cofactor_sdf_path: str = None,
+                   n_cores_per_job: int = 8, num_jobs_receptor_workflow: int = None, num_jobs_per_ligand: int = 40, num_replicas: int = 3,
+                   submit: bool = False, cluster_config: dict = {}):
     orig_dir = os.getcwd()
+    conf = {}
 
     # IO:
     ## Input standardization
-    protein_pdb_path = os.path.abspath(protein_pdb_path)
-    ligand_sdf_paths = [os.path.abspath(ligand_sdf_path) for ligand_sdf_path in ligand_sdf_paths]
+    conf["input_protein_pdb_path"] = os.path.abspath(protein_pdb_path)
+    conf["input_ligands_sdf_path"] = [os.path.abspath(ligand_sdf_path) for ligand_sdf_path in ligand_sdf_paths]
 
-    out_root_folder_path = os.path.abspath(out_root_folder_path)
-    if(cofactor_sdf_path is not None): cofactor_sdf_path = os.path.abspath(cofactor_sdf_path)
+    if (cofactor_sdf_path is not None):
+        conf["input_cofactor_sdf_path"] = os.path.abspath(cofactor_sdf_path)
+    else:
+        conf["input_cofactor_sdf_path"] = None
+
+    conf["out_approach_path"] = os.path.abspath(out_root_folder_path)
 
     ## Generate output folders
-    input_dir = out_root_folder_path+"/input"
-    for dir_path in [out_root_folder_path, input_dir]:
-        if(not os.path.isdir(dir_path)):
+    for dir_path in [conf["out_approach_path"]]:
+        if (not os.path.isdir(dir_path)):
             os.mkdir(dir_path)
 
     # Prepare Input / Parametrize
-    os.chdir(out_root_folder_path)    
+    os.chdir(conf["out_approach_path"])
 
-    print("Parameterize ")        
-    for sdf in ligand_sdf_paths:
-        out_folder = input_dir+"/"+os.path.splitext(os.path.basename(sdf))[0]+""
-        if(not os.path.isdir(out_folder)):
-            os.mkdir(out_folder)
-        prepare_input_files(protein_pdb=protein_pdb_path, ligand_sdf=sdf, cofactor_sdf=cofactor_sdf_path, out_dir=out_folder)
-    
-    ## Check prepared_input
-    print("Gather Input")
-    input_ligand_paths = [out_root_folder_path+"/input/"+dir+"" for dir in os.listdir(out_root_folder_path+"/input") if(os.path.isdir(out_root_folder_path+"/input/"+dir+""))]
-    print("input ligand dirs: ", input_ligand_paths)
-    print("output root dir: ", out_root_folder_path)
+    conf["ligand_names"] = [os.path.splitext(os.path.basename(sdf))[0] for sdf in conf["input_ligands_sdf_path"]]
+    conf["num_jobs"] = num_jobs_receptor_workflow if (num_jobs_receptor_workflow is not None) else len(conf["ligand_names"]) * num_replicas * 2
+    conf["num_replica"] = num_replicas
 
+    print("Prepare")
+    print("\tstarting preparing ABFE-ligand file structur")
+    build_ligand_flows(input_ligand_paths=conf["input_ligands_sdf_path"],
+                       input_protein_path=conf["input_protein_pdb_path"],
+                       input_cofactor_path=conf["input_cofactor_sdf_path"],
+                       out_root_path=conf["out_approach_path"],
+                       num_max_thread=n_cores_per_job,
+                       num_replicas=num_replicas, num_jobs=num_jobs_per_ligand,
+                       cluster_config=cluster_config)
 
-    # Do ABFE
-    print("starting ABFE: submit-", str(submit))
-    job_ids = calculate_all_ligands(input_ligand_paths=input_ligand_paths, out_root_path=out_root_folder_path,  num_max_thread = n_cores_per_job,
-                           num_replicas=num_replicas,
-                           submit=submit, num_jobs=num_jobs, 
-                           cluster_config=cluster_config, 
-                           use_gpu=use_gpu, hybrid_job=hybrid_job)
-    print("\t started ABFEs with job_ids: ", job_ids)
-    os.chdir(out_root_folder_path)
-    
-    
+    print("\tstarting preparing ABFE-Approach file structur: ", out_root_folder_path)
+    expected_out_paths = int(num_replicas) * len(conf["ligand_names"])
+    result_paths = glob.glob(conf["out_approach_path"] + "/*/*/dG*csv")
+
+    if (len(result_paths) != expected_out_paths):
+        print("\tBuild approach struct")
+        cluster_config = {}
+        job_approach_file_path = build_approach_flow(approach_name=approach_name,
+                                                     num_jobs=conf["num_jobs"],
+                                                     conf=conf, submit=submit,
+                                                     cluster_config=cluster_config)
+    print("Do")
+    print("\tSubmit Job - ID: ", job_approach_file_path)
     # Final gathering
-    if(len(job_ids)>0):
-        cmd = "python "+final_receptor_results.__file__+" -i "+out_root_folder_path+" -o "+out_root_folder_path
-        subprocess.getoutput("sbatch -c1 --dependecy=afterok:"+":".join(map(str, job_ids))+" "+cmd)
-    else:
-        print("Trying to gather results", out_root_folder_path)
+    print("\tAlready got results?: " + str(len(result_paths)))
+    if (len(result_paths) > 0):
+        print("Trying to gather ready results", out_root_folder_path)
         final_receptor_results.get_final_results(out_dir=out_root_folder_path, in_root_dir=out_root_folder_path)
+
+    print()
     os.chdir(orig_dir)

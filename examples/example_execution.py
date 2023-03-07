@@ -18,6 +18,6 @@ out_folder = root_path+"/abfe"
 calculate_abfe(protein_pdb_path=receptor_pdb, 
                ligand_sdf_path=ligand_sdfs, 
                out_root_folder_path=out_folder,
-               use_gpu=True, hybrid_job=True,
-               submit=True, n_cores_per_job=8
+               num_replicas=3,
+               submit=True
                )
