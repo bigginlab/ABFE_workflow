@@ -25,8 +25,8 @@ Additional script information is provided via:
   ABFE_Calculator.py -h
 ```
 
-
-```
+Output:
+```bash
 > ABFE_Calculator.py -h
 
 usage: ABFE_Calculator.py [-h] -p PROTEIN_PDB_PATH -l LIGAND_SDF_DIR -o OUTPUT_DIR_PATH [-c COFACTOR_SDF_PATH] [-nr NUMBER_OF_REPLICATES] [-njr NUMBER_OF_PARALLEL_RECEPTOR_JOBS] [-njl NUMBER_OF_PARALLEL_LIGAND_JOBS] [-ncl NUMBER_OF_CPUS_PER_LIGAND_JOB] [-submit]
