@@ -1,5 +1,5 @@
 # ABFE_workflow
-**WARNING**: **The repo is currently under development :)**
+**WARNING**: **The repo is currently under development - Test systems do not work, code might be instabil :)**
 
 A snakemake based workflow for ABFE calculations using GMX. The workflow can be scaled on Slurm Queuing systems.
 The here provided Cyclophilin D Test systems and experimental values originate from:
