@@ -6,7 +6,7 @@ The here provided Cyclophilin D Test systems and experimental values originate f
 * [Alibay, I.; Magarkar, A.; Seeliger, D.; Biggin, P. C. Evaluating the use of absolute binding
 free energy in the fragment optimisation process. Communications Chemistry 2022, 5,
 105.](https://doi.org/10.1038/s42004-022-00721-4)
-* [Gr ̈adler, U.; Schwarz, D.; Blaesse, M.; Leuthner, B.; Johnson, T. L.; Bernard, F.; Jiang, X.; Marx, A.; Gilardone, M.; Lemoine, H.; Roche, D.; Jorand-Lebrun, C. Discovery of novel Cyclophilin D inhibitors starting from three dimensional fragments with
+* [Grädler, U.; Schwarz, D.; Blaesse, M.; Leuthner, B.; Johnson, T. L.; Bernard, F.; Jiang, X.; Marx, A.; Gilardone, M.; Lemoine, H.; Roche, D.; Jorand-Lebrun, C. Discovery of novel Cyclophilin D inhibitors starting from three dimensional fragments with
 millimolar potencies. Bioorganic Medicinal Chemistry Letters 2019, 29, 126717.](https://doi.org/10.1016/j.bmcl.2019.126717)
 
 Here a visualization of the triggered process:
