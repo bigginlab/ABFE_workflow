@@ -1,35 +1,19 @@
 name: abfe
 channels:
   - bioconda
-  - michellab/label/dev
-  - nvidia
   - conda-forge
   - defaults
 dependencies:
-  - python>=3.8
-  - pip
   - conda-build
-  
-  - snakemake=7.8.5
-  - tabulate=0.8.10
-  
-  #- cuda-toolkit=11.4.2
   - gromacs=2022.2
-
   - matplotlib
-  - numpy
-  - scipy
-  - pandas
-  
   - mdanalysis
+  - numpy
+  - pandas
   - parmed
-  - pdbfixer
-  - biosimspace
-  - openff-toolkit
-  - openff-interchange
-
+  - python=3.7.12
+  - scipy
+  - snakemake=7.8.5
   - pip:
-    - alchemlyb==2.0.0
-    - pymbar==4.0.1
-    - MDRestraintsGenerator
-
+    - alchemlyb==0.6.0
+    - pymbar==3.0.5

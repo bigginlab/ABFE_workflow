@@ -1,0 +1,35 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=6
+#SBATCH --gres=gpu:1
+#SBATCH --gres-flags=enforce-binding
+#SBATCH --time=144:00:00
+#SBATCH -J FEP-coul
+#SBATCH -p gpu-biggin4
+#SBATCH --array=1-11
+
+wd=$PWD
+
+source /etc/profile.d/modules.sh
+module load use.own
+module load local-apps/gromacs/2021.1-AVX2
+
+setup_dir="${PWD}/../final-topology/"
+
+let index=${SLURM_ARRAY_TASK_ID}-1
+
+cd coul.${index}
+  # Set up directory
+  sub_wd=$PWD
+  for stage in em nvt npt npt-norest
+  do
+    cd ${stage}
+    ./${stage}.bash
+    wait
+    cd $sub_wd
+  done
+  cd prod
+    gmx grompp -f prod.mdp -c ../npt-norest/npt-norest.gro -t ../npt-norest/npt-norest.cpt -p ${setup_dir}/complex.top \
+           -o prod.tpr -maxwarn 2 2>&1 | tee prod.grompp.log
+    cd $wd
