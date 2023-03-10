@@ -1,5 +1,7 @@
 # ABFE_workflow
 
+**WARNING The repo is currently under heavy development!**
+
 A snakemake based workflow for ABFE calculations using GMX. The workflow can be scaled on Slurm Queuing systems.
 
 
