@@ -39,18 +39,19 @@ def parameterize(input_molecule, output_dir, hmr=False, input_molecule_name="MOL
 
     # openmm_system = interchange.to_openmm()
 
-    interchange.to_gro(os.path.join(dir_name, "out.pdb"))
+    interchange.to_pdb(os.path.join(dir_name, "out.pdb"))
     interchange.to_gro(os.path.join(dir_name, "out.gro"))
     interchange.to_top(os.path.join(dir_name, "out.top"))
     interchange.to_prmtop(os.path.join(dir_name, "out.prmtop"))
 
     pmd_top = pmd.load_file(os.path.join(dir_name, "out.prmtop"))
     pmd_pdb = pmd.load_file(os.path.join(dir_name, "out.pdb"))
+    pmd_gro = pmd.load_file(os.path.join(dir_name, "out.gro"))
 
-    for atom in pmd_pdb.atoms:
-        atom.residue.name = input_molecule_name
-    for atom in pmd_top.atoms:
-        atom.residue.name = input_molecule_name
+    for atom1, atom2, atom3 in zip(pmd_pdb.atoms, pmd_gro.atoms, pmd_top.atoms):
+        atom1.residue.name = input_molecule_name
+        atom2.residue.name = input_molecule_name
+        atom3.residue.name = input_molecule_name
 
     if hmr:
         pmd.tools.HMassRepartition(pmd_top, 3).execute()
