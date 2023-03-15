@@ -2,7 +2,7 @@ name: abfe
 channels:
   - conda-forge
 dependencies:
-  - python >=3.8, <3.10 # biosimspace use this python definition
+  - python >=3.8,<3.11
   - pip
   - conda-build
   - gromacs=2022.2
@@ -10,9 +10,15 @@ dependencies:
   - pdbfixer
   - openff-toolkit
   - openff-interchange
-  - openbiosim::biosimspace
+  - ipykernel
+  - ipython
+  - ipywidgets
+  - nbsphinx==0.8.7
+  - sphinx==4.1.2
+
+  - michellab/label/dev::biosimspace
   - bioconda::snakemake
-  # - nvidia::cuda-toolkit=11.4.2
+  #- nvidia::cuda-toolkit=11.4.2
   - pip:
     - alchemlyb==2.0.0
     - pymbar==4.0.1
@@ -23,3 +29,5 @@ dependencies:
     - pandas
     - mdanalysis
     - tabulate==0.8.10
+    - recommonmark
+    - sphinx_rtd_theme
