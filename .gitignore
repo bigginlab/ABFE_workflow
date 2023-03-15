@@ -8,3 +8,8 @@ Snakemake
 
 data/*
 /examples/CyclophilinD_data/abfe/
+
+public
+
+.pytest_cache
+.vscode
