@@ -8,6 +8,7 @@ dependencies:
   - gromacs=2022.2
   - parmed
   - pdbfixer
+  - openmm
   - openff-toolkit
   - openff-interchange
   - ipykernel
@@ -28,6 +29,7 @@ dependencies:
     - scipy
     - pandas
     - mdanalysis
+    - TOFF
     - tabulate==0.8.10
     - recommonmark
     - sphinx_rtd_theme

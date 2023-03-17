@@ -8,6 +8,7 @@ dependencies:
   - gromacs=2022.2
   - parmed
   - pdbfixer
+  - openmm
   - openff-toolkit
   - openff-interchange
   - openbiosim::biosimspace
@@ -22,4 +23,5 @@ dependencies:
     - scipy
     - pandas
     - mdanalysis
+    - TOFF
     - tabulate==0.8.10
