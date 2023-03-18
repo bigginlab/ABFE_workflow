@@ -3,9 +3,10 @@ import glob
 import os
 import shutil
 import subprocess
+from warnings import warn
 
 from abfe.home import home
-from typing import Union
+from typing import Union, Iterable
 import tarfile
 
 from toff import Parameterize
@@ -81,26 +82,6 @@ def run(command:str, shell:bool = True, executable:str = '/bin/bash', Popen:bool
             raise RuntimeError(process.stderr)
     return process
 
-#########################################################################################33
-def solvate(md_system, outdir:PathLike):
-    #TODO, here I have to specify the right vector in the case of a membrane protein
-    print("Solvating the system in: ", outdir)
-    if not os.path.exists(outdir):
-        os.makedirs(outdir)
-    box_min, box_max = md_system.getAxisAlignedBoundingBox()
-    box_size = [y - x for x, y in zip(box_min, box_max)]
-    padding = 15 * bss.Units.Length.angstrom
-
-    box_length = (max(box_size) + 1.5 * padding)
-    box, angles = bss.Box.truncatedOctahedron(box_length.value() * bss.Units.Length.angstrom)
-
-    solvated = bss.Solvent.tip3p(md_system, box=box, angles=angles)
-    
-    cwd = os.getcwd()
-    os.chdir(outdir)
-    bss.IO.saveMolecules('solvated', solvated, ["GroTop", "Gro87"])
-    os.chdir(cwd)
-
 def system_combiner(**md_elements):
     """This function simply sum up all the elements provided 
     as keyword arguments.
@@ -130,6 +111,54 @@ def system_combiner(**md_elements):
     print(f"The system was constructed as fallow: {' + '.join([key for key in md_elements if md_elements[key]])}")
     return md_system
 
+# TODO, check what is the type of the bss_systems to add it as a HintType
+def solvate(bss_system:object, out_dir:PathLike = '.', box:Iterable[float] = None, angles:Iterable[float] = None):
+    """Solvate and add ions to the system, if box and angles are not provided,
+    the system will be solvated as a truncated octahedron with a padding of 15 Angstroms.
+
+    Parameters
+    ----------
+    bss_system : object
+        The BSS system to solvate
+    out_dir : PathLike, optional
+        Where the files will be written: solvated.gro, solvated.top, by default '.'
+    box : Iterable[float], optional
+        This is the vectors of the bos in ANGSTROMS. It is important that the provided vector has the correct units, by default None
+    angles : Iterable[float], optional
+        This is the angles between the components of the vector in DEGREEs. It is important that the provided vector has the correct units, by default None
+
+    Raises
+    ------
+    ValueError
+        if box does not have three elements
+    ValueError
+        if angles does not have three elements
+    """
+    print("Solvating the system in: ", out_dir)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+    
+    if box and angles:
+        if len(box) != 3:
+            raise ValueError(f"'box' must be a iterable of three values: [x,y,z] in Angstrom. Provided: box = {box}")
+        elif len(angles) != 3:
+            raise ValueError(f"'angles' must be a iterable of three values: [xy,yz,zx] in Degree. Provided: angles = {angles}")
+        box = [bss.Types.Length(proj, 'angstrom') for proj in box]
+        angles = [bss.Types.Angle(angle, 'degree') for angle in angles]
+    else:
+        box_min, box_max = bss_system.getAxisAlignedBoundingBox()
+        box_size = [y - x for x, y in zip(box_min, box_max)]
+        padding = 15 * bss.Units.Length.angstrom
+        box_length = (max(box_size) + 1.5 * padding)
+        box, angles = bss.Box.truncatedOctahedron(box_length.value() * bss.Units.Length.angstrom)
+    
+    solvated = bss.Solvent.tip3p(bss_system, box=box, angles=angles)
+    
+    cwd = os.getcwd()
+    os.chdir(out_dir)
+    bss.IO.saveMolecules('solvated', solvated, ["GroTop", "Gro87"])
+    os.chdir(cwd)
+
 def prepare_for_abfe(out_dir, ligand_dir, sys_dir):
     complex_out = out_dir + "/complex"
     ligand_out = out_dir + "/ligand"
@@ -148,21 +177,35 @@ def prepare_for_abfe(out_dir, ligand_dir, sys_dir):
     for itp_file in glob.glob(ligand_dir + "/*.itp"):
         shutil.copy(src=itp_file, dst=ligand_out)
 
+# TODO create docs of the __init__ method
 class MakeInputs:
     def __init__(self,
             protein_pdb:PathLike = None,
             membrane_pdb:PathLike = None,
             cofactor_mol:PathLike = None,
             hmr_factor:float = None,
+            box:Iterable[float] = None,
+            angles:Iterable[float] = None,
             keep_tmp_files_on:PathLike = None):
 
         self.protein_pdb = protein_pdb
         self.membrane_pdb = membrane_pdb
         self.cofactor_mol = cofactor_mol
         self.hmr_factor = hmr_factor
+        self.box = box
+        self.angles = angles
         self.keep_tmp_files_on = keep_tmp_files_on
         self.__self_was_called = False
         
+        if self.membrane_pdb:
+            if not self.box:
+                warn(f"It looks that your are trying to set up a membrane system (membrane_pdb = {self.membrane_pdb}).\n"\
+                    "However you have not provided a 'box' definition, the solvated system could not be right.\n"\
+                    )
+            if not self.angles:
+                warn(f"It looks that your are trying to set up a membrane system (membrane_pdb = {self.membrane_pdb}).\n"\
+                    "However you have not provided a 'angles' definition, the solvated system could not be right.\n"\
+                    )
         # Working paths
         if keep_tmp_files_on:
             self.wd = keep_tmp_files_on
@@ -278,7 +321,17 @@ class MakeInputs:
         os.chdir(cwd)
         return bss_system
 
-    def make_bss_system(self, ligand_mol):
+    def make_bss_system(self, ligand_mol:PathLike):
+        """Create self.sys_ligand, self.sys_cofactor, self.sys_protein, self.sys_membrane
+        and self.md_system (the combination of the available components). In case
+        that the class was already called, it will be assumed that self.sys_cofactor, self.sys_protein, self.sys_membrane
+        ere already calculated, only self.sys_ligand will be updated as well self.md_system
+
+        Parameters
+        ----------
+        ligand_mol : PathLike
+            The path of the where the ligand mol file
+        """
         print("Processing components of the system...")
         self.sys_ligand = self.openff_process(
             mol_file = ligand_mol,
@@ -330,12 +383,15 @@ class MakeInputs:
         system_dir = os.path.join(self.wd, 'system')
         ligand_dir = os.path.join(self.wd, 'ligand')
 
-        solvate(self.md_system, outdir=system_dir)
+        # Solvate the system
+        solvate(self.md_system, out_dir=system_dir, box = self.box, angles = self.box)
         solvate(self.sys_ligand, outdir=ligand_dir)
 
+        # TODO Check what is done here and put it inside prepare_for_abfe
         fix_topology(input_topology_path=os.path.join(system_dir,'solvated.top'), out_topology_path=os.path.join(system_dir,'solvated_fix.top'))
         fix_topology(input_topology_path=os.path.join(ligand_dir,'solvated.top'), out_topology_path=os.path.join(ligand_dir,'solvated_fix.top'))
-
+        
+        # TODO Check what is done here
         # Construct ABFE system:
         prepare_for_abfe(out_dir=self.out_dir, ligand_dir=ligand_dir, sys_dir=system_dir)
         
@@ -348,7 +404,8 @@ class MakeInputs:
 #############################################################################################
 
 if __name__ == "__main__":...
-
+    # box = [116.982, 116.982, 105.354]
+    # angles = [90.0, 90.0, 60.0]
     # builder = MakeInputs(
     #         protein_pdb = 'protein.pdb', #None,#'protein.pdb',
     #         membrane_pdb = None,#'membrane.pdb',#'membrane.pdb',
