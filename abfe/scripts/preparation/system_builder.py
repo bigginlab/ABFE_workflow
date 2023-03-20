@@ -113,8 +113,8 @@ def system_combiner(**md_elements):
     return md_system
 
 # TODO, check what is the type of the bss_systems to add it as a HintType
-def solvate(bss_system:object, out_dir:PathLike = '.', box:Iterable[float] = None, angles:Iterable[float] = None):
-    """Solvate and add ions to the system, if box and angles are not provided,
+def solvate(bss_system:object, out_dir:PathLike = '.', vectors:Iterable[float] = None, angles:Iterable[float] = None):
+    """Solvate and add ions to the system, if vectors and angles are not provided,
     the system will be solvated as a truncated octahedron with a padding of 15 Angstroms.
 
     Parameters
@@ -123,7 +123,7 @@ def solvate(bss_system:object, out_dir:PathLike = '.', box:Iterable[float] = Non
         The BSS system to solvate
     out_dir : PathLike, optional
         Where the files will be written: solvated.gro, solvated.top, by default '.'
-    box : Iterable[float], optional
+    vectors : Iterable[float], optional
         This is the vectors of the bos in ANGSTROMS. It is important that the provided vector has the correct units, by default None
     angles : Iterable[float], optional
         This is the angles between the components of the vector in DEGREES. It is important that the provided vector has the correct units, by default None
@@ -131,7 +131,7 @@ def solvate(bss_system:object, out_dir:PathLike = '.', box:Iterable[float] = Non
     Raises
     ------
     ValueError
-        if box does not have three elements
+        if vectors does not have three elements
     ValueError
         if angles does not have three elements
     """
@@ -139,26 +139,27 @@ def solvate(bss_system:object, out_dir:PathLike = '.', box:Iterable[float] = Non
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     
-    if box and angles:
-        if len(box) != 3:
-            raise ValueError(f"'box' must be a iterable of three values: [x,y,z] in Angstrom. Provided: box = {box}")
+    if vectors and angles:
+        if len(vectors) != 3:
+            raise ValueError(f"'vectors' must be a iterable of three values: [a,b,c] in Angstrom. Provided: vectors = {vectors}")
         elif len(angles) != 3:
-            raise ValueError(f"'angles' must be a iterable of three values: [xy,yz,zx] in Degree. Provided: angles = {angles}")
-        box = [bss.Types.Length(proj, 'angstrom') for proj in box]
+            raise ValueError(f"'angles' must be a iterable of three values: [alpha,beta,gamma] in Degree. Provided: angles = {angles}")
+        vectors = [bss.Types.Length(proj, 'angstrom') for proj in vectors]
         angles = [bss.Types.Angle(angle, 'degree') for angle in angles]
     else:
         box_min, box_max = bss_system.getAxisAlignedBoundingBox()
         box_size = [y - x for x, y in zip(box_min, box_max)]
         padding = 15 * bss.Units.Length.angstrom
         box_length = (max(box_size) + 1.5 * padding)
-        box, angles = bss.Box.truncatedOctahedron(box_length.value() * bss.Units.Length.angstrom)
+        vectors, angles = bss.Box.truncatedOctahedron(box_length.value() * bss.Units.Length.angstrom)
     
-    solvated = bss.Solvent.tip3p(bss_system, box=box, angles=angles)
+    solvated = bss.Solvent.tip3p(bss_system, box=vectors, angles=angles)
     
     cwd = os.getcwd()
     os.chdir(out_dir)
     bss.IO.saveMolecules('solvated', solvated, ["GroTop", "Gro87"])
     os.chdir(cwd)
+
 
 def make_abfe_dir(out_dir:PathLike, ligand_dir:PathLike, sys_dir:PathLike):
     """A copy and paste function to create the structure of the abfe directory
@@ -191,6 +192,73 @@ def make_abfe_dir(out_dir:PathLike, ligand_dir:PathLike, sys_dir:PathLike):
     shutil.copyfile(src=os.path.join(sys_dir, "solvated_fix.top"), dst=os.path.join(complex_out, "complex.top"))
 
 
+class CRYST1:
+    """
+    https://www.wwpdb.org/documentation/file-format-content/format33/sect8.html#CRYST1
+    """
+    def __init__(self, line = None):
+        if line:
+            self.a = float(line[6:15])			    #Real(9.3)     a              a (Angstroms).
+            self.b = float(line[15:24])			    #Real(9.3)     b              b (Angstroms).
+            self.c = float(line[24:33])			    #Real(9.3)     c              c (Angstroms).
+            self.alpha = float(line[33:40])			#Real(7.2)     alpha          alpha (degrees).
+            self.beta = float(line[40:47])			#Real(7.2)     beta           beta (degrees).
+            self.gamma = float(line[47:54])			#Real(7.2)     gamma          gamma (degrees).
+            self.sGroup = line[55:66]			    #LString       sGroup         Space  group.
+            try:
+                self.z = int(line[66:70])			    #Integer       z              Z value.
+            except:
+                self.z = ""
+            self.__is_init = True
+        else:
+            self.__is_init = False
+    
+    def from_pdb(self, file:PathLike):
+        """Initialize the class from a pdb file
+
+        Parameters
+        ----------
+        file : PathLike
+            The PDB file
+        """
+        with open(file, 'r') as f:
+            for line in f.readlines():
+                if line.startswith('CRYST1'):
+                    self.__init__(line)
+                    self.__is_init = True
+                    break
+        if not self.__is_init:
+            warn('from_pdb was not able to initialize {self.__class__.__name__}')
+    
+    def get_bss_vectors(self) -> tuple[bss.Types.Length]:
+        """get BioSimSpace vectors from the CRYST1 information
+
+        Returns
+        -------
+        tuple[bss.Types.Length]
+            BioSimSpace box (a, b, c)
+        """
+        return bss.Types.Length(self.a, 'angstrom'), bss.Types.Length(self.b, 'angstrom'), bss.Types.Length(self.c, 'angstrom')
+
+    def get_bss_angles(self) -> tuple[bss.Types.Angle]:
+        """get BioSimSpace angles from the CRYST1 information
+
+        Returns
+        -------
+        tuple[bss.Types.Angle]
+            BioSimSpace box (alpha, beta, gamma)
+        """
+        return bss.Types.Angle(self.alpha, 'degree'), bss.Types.Angle(self.beta, 'degree'), bss.Types.Angle(self.gamma, 'degree')
+
+    def __getitem__(self, key):
+        return self.__dict__[key]
+    def string(self):
+        string_repr = "CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f%-12s%4s\n"%\
+            (self.a,self.b,self.c,self.alpha,self.beta,self.gamma,self.sGroup,self.z)
+        return string_repr
+    def __repr__(self):
+        return self.string_repr()
+
 # TODO create docs of the __init__ method
 class MakeInputs:
     def __init__(self,
@@ -206,8 +274,6 @@ class MakeInputs:
         self.membrane_pdb = membrane_pdb
         self.cofactor_mol = cofactor_mol
         self.hmr_factor = hmr_factor
-        self.box = box
-        self.angles = angles
         self.keep_tmp_files_on = keep_tmp_files_on
         self.__self_was_called = False
         
@@ -228,6 +294,17 @@ class MakeInputs:
         if not os.path.exists(self.wd):
             os.makedirs(self.wd)
         self.wd = os.path.abspath(self.wd)
+
+        # Initialize vectors and angles based on the information of the PDB only if a membrane system
+        if self.membrane_pdb:
+            cryst_info = CRYST1()
+            cryst_info.from_pdb(self.membrane_pdb)
+            self.vectors = cryst_info.get_bss_vectors()
+            self.angles = cryst_info.get_bss_angles()
+            print(f"This is a membrane system. Crystal information was taken from {self.membrane_pdb} and it will be used for solvating the system. {cryst_info}")
+        else:
+            self.vectors, self.angles  = None, None
+
 
     def openff_process(self, mol_file:PathLike, name:str="MOL", safe_naming_prefix:str = None):
         """Get parameters for small molecules: ligands, cofactors, ...
@@ -319,7 +396,7 @@ class MakeInputs:
 
         if is_membrane:
             get_gmx_ff('Slipids_2020', out_dir=self.wd)
-            run(f"gmx pdb2gmx -f {fixed_pdb} -ff Slipids_2020 -water none -o {top_out} -p {top_out} -i {posre_out}")
+            run(f"gmx pdb2gmx -f {fixed_pdb} -ff Slipids_2020 -water none -o {gro_out} -p {top_out} -i {posre_out}")
         else:
             run(f"gmx pdb2gmx -f {fixed_pdb} -merge all -ff amber99sb-ildn -water tip3p -o {gro_out} -p {top_out} -i {posre_out} -ignh")
 
@@ -400,8 +477,8 @@ class MakeInputs:
         system_dir = os.path.join(self.wd, 'system')
         ligand_dir = os.path.join(self.wd, 'ligand')
 
-        # Solvate the system
-        solvate(self.md_system, out_dir=system_dir, box = self.box, angles = self.box)
+
+        solvate(self.md_system, out_dir=system_dir, vectors = self.vectors, angles = self.angles)
         solvate(self.sys_ligand, out_dir=ligand_dir)
 
         # TODO Check what is done here and put it inside prepare_for_abfe
@@ -410,7 +487,7 @@ class MakeInputs:
         
         # TODO Check what is done here
         # Construct ABFE system:
-        prepare_for_abfe(out_dir=self.out_dir, ligand_dir=ligand_dir, sys_dir=system_dir)
+        make_abfe_dir(out_dir=self.out_dir, ligand_dir=ligand_dir, sys_dir=system_dir)
         
         self.clean()
 
@@ -507,16 +584,3 @@ def __system_builder_cmd():
 
 if __name__ == "__main__":
     __system_builder_cmd()
-
-    # box = [116.982, 116.982, 105.354]
-    # angles = [90.0, 90.0, 60.0]
-    # builder = MakeInputs(
-    #         protein_pdb = 'protein.pdb', #None,#'protein.pdb',
-    #         membrane_pdb = None,#'membrane.pdb',#'membrane.pdb',
-    #         cofactor_mol = 'ligand.mol',# None
-    #         hmr_factor = 3,
-    #         keep_tmp_files_on = None)
-    # builder(ligand_mol = 'ligand1.mol',out_dir='abfe/lig1')
-    # builder(ligand_mol = 'ligand2.mol',out_dir='abfe/lig2')
-    # builder(ligand_mol = 'ligand3.mol',out_dir='abfe/lig3')
-
