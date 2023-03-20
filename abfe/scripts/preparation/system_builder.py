@@ -3,6 +3,7 @@ import glob
 import os
 import shutil
 import subprocess
+import argparse
 from warnings import warn
 
 from abfe.home import home
@@ -10,7 +11,7 @@ from typing import Union, Iterable
 import tarfile
 
 from toff import Parameterize
-from abfe.scripts.preparation.topology_fixer import fix_topology
+from abfe.scripts.preparation.gmx_topology import fix_topology
 import BioSimSpace as bss
 # from pdbfixer import PDBFixer
 # from openmm.app import PDBFile
@@ -69,7 +70,7 @@ def run(command:str, shell:bool = True, executable:str = '/bin/bash', Popen:bool
     #Here I could make some modification in order that detect the operator system
     #NAd make the command compatible with the operator system
     #the function eval could be an option if some modification to the variable command
-    #need to be done.... SOme flash ideas...
+    #need to be done.... Some flash ideas...
 
     if Popen:
         #In this case you could access the pid as: run.pid
@@ -125,7 +126,7 @@ def solvate(bss_system:object, out_dir:PathLike = '.', box:Iterable[float] = Non
     box : Iterable[float], optional
         This is the vectors of the bos in ANGSTROMS. It is important that the provided vector has the correct units, by default None
     angles : Iterable[float], optional
-        This is the angles between the components of the vector in DEGREEs. It is important that the provided vector has the correct units, by default None
+        This is the angles between the components of the vector in DEGREES. It is important that the provided vector has the correct units, by default None
 
     Raises
     ------
@@ -159,23 +160,36 @@ def solvate(bss_system:object, out_dir:PathLike = '.', box:Iterable[float] = Non
     bss.IO.saveMolecules('solvated', solvated, ["GroTop", "Gro87"])
     os.chdir(cwd)
 
-def prepare_for_abfe(out_dir, ligand_dir, sys_dir):
-    complex_out = out_dir + "/complex"
-    ligand_out = out_dir + "/ligand"
+def make_abfe_dir(out_dir:PathLike, ligand_dir:PathLike, sys_dir:PathLike):
+    """A copy and paste function to create the structure of the abfe directory
+
+    Parameters
+    ----------
+    out_dir : PathLike
+        Where the complex and the ligand systems will be created
+    ligand_dir : PathLike
+        Origin of the ligand inputs configuration and topologies files
+    sys_dir : PathLike
+        Origin of the complex inputs configuration and topologies files
+    """
+    complex_out = os.path.join(out_dir, "complex")
+    ligand_out = os.path.join(out_dir, "ligand")
     if (not os.path.exists(complex_out)): os.makedirs(complex_out)
     if (not os.path.exists(ligand_out)): os.makedirs(ligand_out)
 
-    shutil.copyfile(src=sys_dir + "/solvated.gro", dst=complex_out + "/complex.gro")
-    shutil.copyfile(src=sys_dir + "/solvated_fix.top", dst=complex_out + "/complex.top")
+    for itp_file in glob.glob(os.path.join(ligand_dir, "*.itp")):
+        shutil.copy(src=itp_file, dst=ligand_out)
 
-    for itp_file in glob.glob(sys_dir + "/*.itp"):
+    shutil.copyfile(src=os.path.join(ligand_dir, "solvated.gro"), dst=os.path.join(ligand_out, "ligand.gro"))
+    shutil.copyfile(src=os.path.join(ligand_dir, "solvated_fix.top"), dst=os.path.join(ligand_out, "ligand.top"))
+
+    for itp_file in glob.glob(os.path.join(sys_dir, "*.itp")):
         shutil.copy(src=itp_file, dst=complex_out)
 
-    shutil.copyfile(src=ligand_dir + "/solvated.gro", dst=ligand_out + "/ligand.gro")
-    shutil.copyfile(src=ligand_dir + "/solvated_fix.top", dst=ligand_out + "/ligand.top")
+    shutil.copyfile(src=os.path.join(sys_dir, "solvated.gro"), dst=os.path.join(complex_out, "complex.gro"))
+    # The last one in be copy, this will be used in the snake rule
+    shutil.copyfile(src=os.path.join(sys_dir, "solvated_fix.top"), dst=os.path.join(complex_out, "complex.top"))
 
-    for itp_file in glob.glob(ligand_dir + "/*.itp"):
-        shutil.copy(src=itp_file, dst=ligand_out)
 
 # TODO create docs of the __init__ method
 class MakeInputs:
@@ -282,7 +296,7 @@ class MakeInputs:
         name, _ = os.path.splitext(pdb_file)
         fixed_pdb = os.path.join(self.wd,f"{name}_fixed.pdb")
 
-        # TODO, chake what is going on wrong, and use this kind od code, much better that call from the command line.
+        # TODO, chake what is going wrong, and use this kind of code, much better than call from the command line.
         # fixer = PDBFixer(filename=pdb_file)
         # if not is_membrane:
         #     fixer.findMissingResidues()
@@ -356,7 +370,10 @@ class MakeInputs:
         the intermediate steps saved on out_dir/.builder will be deleted
         """
         if not self.keep_tmp_files_on:
-            shutil.rmtree(self.wd)
+            try:
+                shutil.rmtree(self.wd)
+            except FileNotFoundError:
+                pass
 
     def __call__(self, ligand_mol:PathLike, out_dir = 'abfe'):
         """The call implementation. It identify if it is needed to build
@@ -385,11 +402,11 @@ class MakeInputs:
 
         # Solvate the system
         solvate(self.md_system, out_dir=system_dir, box = self.box, angles = self.box)
-        solvate(self.sys_ligand, outdir=ligand_dir)
+        solvate(self.sys_ligand, out_dir=ligand_dir)
 
         # TODO Check what is done here and put it inside prepare_for_abfe
-        fix_topology(input_topology_path=os.path.join(system_dir,'solvated.top'), out_topology_path=os.path.join(system_dir,'solvated_fix.top'))
-        fix_topology(input_topology_path=os.path.join(ligand_dir,'solvated.top'), out_topology_path=os.path.join(ligand_dir,'solvated_fix.top'))
+        fix_topology(input_topology=os.path.join(system_dir,'solvated.top'), out_dir=system_dir)
+        fix_topology(input_topology=os.path.join(ligand_dir,'solvated.top'), out_dir=ligand_dir)
         
         # TODO Check what is done here
         # Construct ABFE system:
@@ -400,10 +417,97 @@ class MakeInputs:
         # Change state
         self.__self_was_called = True
 
+def __system_builder_cmd():
+    """
+    Command line implementation for :meth:`abfe.scripts.system_builder.MakeInputs`
+    """
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument(
+        help='The directory where all the ligans are in the format of .mol',
+        dest = 'ligand_mols_path',
+        type = str,
+    )
+    parser.add_argument(
+        '--protein_pdb',
+        help = 'Protein pdb file, by default %(default)s',
+        dest = 'protein_pdb',
+        default = None,
+        type = str,
+    )
+    parser.add_argument(
+        '--membrane_pdb',
+        help='Membrane pdb file, by default %(default)s',
+        dest = 'membrane_pdb',
+        default = None,
+        type = str,
+    )
+    parser.add_argument(
+        '--cofactor_mol',
+        help='Cofactor mol file, by default %(default)s',
+        dest = 'cofactor_mol',
+        default = None,
+        type = str,
+    )
+    parser.add_argument(
+        '--hmr_factor',
+        help='Hydrogen Mass Repartition factor, by default %(default)s',
+        dest = 'hmr_factor',
+        default = 3.0,
+        type = float,
+    )
+    parser.add_argument(
+        '--box',
+        help='This is the vectors of the bos in ANGSTROMS. It is important that the provided vector has the correct units, by default %(default)s',
+        dest = 'box',
+        nargs=3,
+        default = None,
+        type = float,
+    )
+    parser.add_argument(
+        '--angles',
+        help='This is the angles between the components of the vector in DEGREES. It is important that the provided vector has the correct units, by default %(default)s',
+        dest = 'angles',
+        nargs=3,
+        default = None,
+        type = float,
+    )
+    parser.add_argument(
+        '--keep_tmp_files_on',
+        help='The directory to kept the build files, by default %(default)s',
+        dest = 'keep_tmp_files_on',
+        default = None,
+        type = str,
+    )
+    parser.add_argument(
+        '--out_dir',
+        help='The directory where the build systems will be output, by default %(default)s',
+        dest = 'out_dir',
+        default = 'abfe',
+        type = str,
+    )
+    args = parser.parse_args()
+    builder = MakeInputs(
+        protein_pdb=args.protein_pdb,
+        membrane_pdb=args.membrane_pdb,
+        cofactor_mol=args.cofactor_mol,
+        hmr_factor=args.hmr_factor,
+        box=args.box,
+        angles=args.angles,
+        keep_tmp_files_on = args.keep_tmp_files_on,
+    )
+    for ligand in glob.glob(os.path.join(args.ligand_mols_path, '*.mol')):
+        name, _ = os.path.splitext(os.path.basename(ligand))
+        builder(
+            ligand_mol=ligand,
+            out_dir= os.path.join(args.out_dir, name))
+    builder.clean()
+
 
 #############################################################################################
 
-if __name__ == "__main__":...
+if __name__ == "__main__":
+    __system_builder_cmd()
+
     # box = [116.982, 116.982, 105.354]
     # angles = [90.0, 90.0, 60.0]
     # builder = MakeInputs(
@@ -415,3 +519,4 @@ if __name__ == "__main__":...
     # builder(ligand_mol = 'ligand1.mol',out_dir='abfe/lig1')
     # builder(ligand_mol = 'ligand2.mol',out_dir='abfe/lig2')
     # builder(ligand_mol = 'ligand3.mol',out_dir='abfe/lig3')
+

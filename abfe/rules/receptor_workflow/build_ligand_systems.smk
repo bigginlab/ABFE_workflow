@@ -31,6 +31,7 @@ rule gather_files:
 
 rule build_ligand_system:
     input:
+        # TODO Now the class can work with all the ligands at hte same time, but they must be .mol
         protein_pdb= input_protein_pdb,
         ligand_sdf=approach_path+"/orig_input/{ligand_name}.sdf",
         output_dir= approach_path+"/{ligand_name}/input"
@@ -43,8 +44,9 @@ rule build_ligand_system:
         out_complex_gro=approach_path+"/{ligand_name}/input/complex/complex.gro",
         out_complex_top=approach_path+"/{ligand_name}/input/complex/complex.top"
     shell:
+        # TODO Generalize in case of COF of membrnaes, right now is not taked into account
         """
-            python {params.script_dir}/preparation/generate_ABFE_systems.py --ligand_sdf_dir {input.ligand_sdf} \
+            python {params.script_dir}/preparation/system_builder.py --ligand_mol_dir {input.ligand_mol} \
             --protein_pdb_path {input.protein_pdb} \
             --cofactor_sdf_path {params.cofactor_sdf} --output_dir_path {input.output_dir}
         """
