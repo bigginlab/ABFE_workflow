@@ -2,30 +2,42 @@
 import os
 from typing import Union, Iterable
 PathLike = Union[os.PathLike, str, bytes]
+from dataclasses import dataclass
 
-def get_molecule_names(input_topology:PathLike) -> list:
-    """IT get the molecules names specified inside input_topology
+def get_molecule_names(input_topology:PathLike, section:str = 'molecules') -> list:
+    """It gets the molecule names specified inside input_topology
 
     Parameters
     ----------
     input_topology : PathLike
         The path of the input topology
-
+    input_topology : str
+        The section to extract names from molecules or moleculetype
     Returns
     -------
     list
         A list of the molecules presented in the topology
     """
-    molecules_flag = False
+    if section not in ['molecules', 'moleculetype']:
+        raise ValueError(f"section must be 'molecules', 'moleculetype. {section} was provided.")
+
+    with open(input_topology, 'r') as f:
+        lines = f.readlines()
+
     molecules = []
-    with open(input_topology, "r") as topology_file:
-        for line in topology_file.readlines():
-            if '[ molecules ]' in line:
-                molecules_flag = True
-            if molecules_flag:
-                if not "[" in line and not line.startswith(";"):
-                    if len(line.split()) > 1:
-                        molecules.append(line.split()[0])
+    i = 0
+    while i < len(lines):
+        if section in lines[i]:
+            i += 1
+            while ("[" not in lines[i]):
+                if not lines[i].startswith(';'):
+                    split_line = lines[i].split()
+                    if len(split_line) == 2:
+                        molecules.append(split_line[0])
+                i += 1
+                if i >= len(lines): break
+        i += 1
+
     return molecules
 
 def add_posres_section(input_topology:PathLike, molecules:Iterable[str], out_file:PathLike="topol2.top"):
@@ -34,11 +46,6 @@ def add_posres_section(input_topology:PathLike, molecules:Iterable[str], out_fil
     Examples of added lines:
 
     #ifdef POSRES
-    #include "posres_{molecule}.itp"
-    #endif
-
-
-    #ifdef POSRES_{molecule}
     #include "posres_{molecule}.itp"
     #endif
 
@@ -118,6 +125,148 @@ def make_posres_files(input_topology:PathLike, molecules:Iterable[str], out_dir:
                                     posres_str = f"{top_lines[j].split()[0]} 1 2500 2500 2500\n"
                                     posres_file.write(posres_str)
 
+def make_ion_moleculetype_section(ion_name):
+    internal_data = {
+        'CL':{
+            'NAME':'CL',
+            'TYPE':'Cl',
+            'RESIDUE':'CL',
+            'ATOM':'CL',
+            'CHARGE':-1.000000,
+            'MASS':35.450000
+        },
+        'K':{
+            'NAME':'CL',
+            'TYPE':'Cl',
+            'RESIDUE':'CL',
+            'ATOM':'CL',
+            'CHARGE':1.000000,
+            'MASS':39.100000
+        },
+        'NA':{
+            'NAME':'NA',
+            'TYPE':'Na',
+            'RESIDUE':'NA',
+            'ATOM':'NA',
+            'CHARGE':1.000000,
+            'MASS':22.990000
+        }, 
+    }
+
+    template = "[ moleculetype ]\n"\
+            "; name  nrexcl\n"\
+            f"{internal_data[ion_name]['NAME']}  3\n\n"\
+            f"[ atoms ]\n"\
+            ";   nr   type  resnr residue  atom   cgnr     charge         mass\n"\
+            f"   1     {internal_data[ion_name]['TYPE']}      1      {internal_data[ion_name]['RESIDUE']}    {internal_data[ion_name]['ATOM']}      1  {internal_data[ion_name]['CHARGE']}    {internal_data[ion_name]['MASS']}\n\n"
+    return template
+
+def add_ions_moleculetype(input_topology, output_topology):
+
+    molecules = get_molecule_names(input_topology, section='molecules')
+    molecule_types = get_molecule_names(input_topology, section = 'moleculetype')
+    print(molecule_types)
+    ions = ['CL', 'NA', 'K']
+    ions_moleculetype = ''
+    for possible_ion in set(molecules) - set(molecule_types):
+        if possible_ion in ions:
+            ions_moleculetype += make_ion_moleculetype_section(possible_ion)
+    
+    with open(input_topology, "r") as topology_file:
+        old_lines = topology_file.readlines()
+
+    new_lines = []
+    i = 0
+    while i < len(old_lines):
+        if '[ atomtypes ]' in old_lines[i]:
+            new_lines.append(old_lines[i])
+            i += 1
+            while "[" not in old_lines[i]:
+                new_lines.append(old_lines[i])
+                i += 1
+                if i >= len(old_lines): break
+            # ffnonbonded.itp term
+            new_lines.append(ions_moleculetype)
+            new_lines.append(old_lines[i])
+        else:
+            new_lines.append(old_lines[i])
+        i += 1
+    with open(output_topology, 'w') as out:
+        for line in new_lines:
+            out.write(line)
+
+def add_water_ions_param(input_topology, output_topology):
+
+    with open(input_topology, "r") as topology_file:
+        old_lines = topology_file.readlines()
+
+    new_lines = []
+    i = 0
+    while i < len(old_lines):
+        if '[ atomtypes ]' in old_lines[i]:
+            new_lines.append(old_lines[i])
+            # It is safe to use the while because the default section must be at the top of the topology file
+            i += 1
+            while "[" not in old_lines[i]:
+                new_lines.append(old_lines[i])
+                i += 1
+                if i >= len(old_lines): break
+            # ffnonbonded.itp term
+            new_lines.append("OW           8      16.00    0.0000  A   3.15061e-01  6.36386e-01\n"\
+                            "HW           1       1.008   0.0000  A   0.00000e+00  0.00000e+00\n"\
+                            "; spc water - use only with spc.itp & settles\n"\
+                            "OW_spc       8      15.9994  0.0000  A   3.16557e-01  6.50629e-01\n"\
+                            "HW_spc       1       1.0080  0.0000  A   0.00000e+00  0.00000e+00\n"\
+                            "K           19      39.10    0.0000  A   4.73602e-01  1.37235e-03\n"\
+                            "Cl          17      35.45    0.0000  A   4.40104e-01  4.18400e-01\n"\
+                            "Na          11      22.99    0.0000  A   3.32840e-01  1.15897e-02\n\n"
+                            )
+            new_lines.append(old_lines[i])
+
+        elif '[ system ]' in old_lines[i]:
+            new_lines.append("[ moleculetype ]\n"\
+                "; name  nrexcl\n"\
+                "SOL  3\n\n"\
+                
+                "[ atoms ]\n"\
+                ";   nr   type  resnr residue  atom   cgnr     charge         mass\n"\
+                "     1     OW      1     SOL    OW      1  -0.834000    16.000000\n"\
+                "     2     HW      1     SOL   HW1      1   0.417000     1.008000\n"\
+                "     3     HW      1     SOL   HW2      1   0.417000     1.008000\n\n"\
+                
+                "#ifdef FLEXIBLE\n"\
+                "[ bonds ]\n"\
+                ";   ai     aj  funct  parameters\n"\
+                "     1      2      1  0.09572  50241\n"\
+                "     1      3      1  0.09572  502416\n\n"\
+                
+                "[ angles ]\n"\
+                ";   ai     aj     ak   funct   parameters\n"\
+                "     2      1      3       1   104.52  628.02\n\n"\
+                
+                "#else\n\n"\
+
+                "[ settles ]\n"\
+                "; OW    funct   doh dhh\n"\
+                "1       1       0.09572 0.15136\n\n"\
+                
+                "[ exclusions ]\n"\
+                "1   2   3\n"\
+                "2   1   3\n"\
+                "3   1   2\n\n"\
+                
+                "#endif\n\n"\
+
+                "[ system ]\n"
+                )
+        else:
+            new_lines.append(old_lines[i])
+        i += 1
+
+    with open(output_topology, 'w') as out:
+        for line in new_lines:
+            out.write(line)
+
 def fix_topology(input_topology: PathLike, out_dir: PathLike, exclusion_list:list = ["SOL", "NA", "CL", "MG", "ZN"]):
     """It will go through input_topology, create the posres files for the identified molecules
     not in exclusion list, and finally add the corresponded include statements in the topology file.
@@ -149,15 +298,20 @@ def fix_topology(input_topology: PathLike, out_dir: PathLike, exclusion_list:lis
     print(molecules)
     make_posres_files(input_topology, out_dir = out_dir, molecules = molecules)
     add_posres_section(input_topology, molecules, out_file=out_topology)
+    add_ions_moleculetype(out_topology, out_topology)
 
 
-if __name__ == "__main__":...
+if __name__ == "__main__":
+    input_topology = '/home/users/alejandro/GIT/ABFE_workflow/examples/prepearing_system/abfe/abc/input/complex/complex.top'
+    
+    add_ions_moleculetype(input_topology, 'top.top')
+
 
     # # input_topology_path = sys.argv[1]
     # # out_topology_path = sys.argv[2]
     # exclusion_list = ["SOL", "NA", "CL", "MG", "ZN"]
     # fix_topology(
-    #     input_topology = '/home/users/alejandro/GIT/ABFE_workflow/examples/prepearing_system/builder/system/solvated.top',
+    #     input_topology = '/home/users/alejandro/GIT/ABFE_workflow/examples/prepearing_system/abfe/abc/input/complex/complex.top',
     #     out_dir='test',
     #     exclusion_list=exclusion_list,
 
