@@ -301,10 +301,10 @@ def fix_topology(input_topology: PathLike, out_dir: PathLike, exclusion_list:lis
     add_ions_moleculetype(out_topology, out_topology)
 
 
-if __name__ == "__main__":
-    input_topology = '/home/users/alejandro/GIT/ABFE_workflow/examples/prepearing_system/abfe/abc/input/complex/complex.top'
+if __name__ == "__main__":...
+    # input_topology = '/home/users/alejandro/GIT/ABFE_workflow/examples/prepearing_system/abfe/abc/input/complex/complex.top'
     
-    add_ions_moleculetype(input_topology, 'top.top')
+    # add_ions_moleculetype(input_topology, 'top.top')
 
 
     # # input_topology_path = sys.argv[1]

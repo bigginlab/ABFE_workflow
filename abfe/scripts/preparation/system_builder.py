@@ -604,7 +604,7 @@ class MakeInputs:
 
         if self.membrane_pdb:
             parmed_solvate(self.md_system, bt='triclinic', box = self.vectors,angles=self.angles, out_dir=system_dir)
-            parmed_solvate(self.md_system, bt='octahedron', d = 1.5, out_dir=ligand_dir)
+            parmed_solvate(self.sys_ligand, bt='octahedron', d = 1.5, out_dir=ligand_dir)
         else:
             bss_solvate(self.md_system, out_dir=system_dir)
             bss_solvate(self.sys_ligand, out_dir=ligand_dir)
