@@ -25,3 +25,4 @@ dependencies:
     - mdanalysis
     - TOFF
     - tabulate==0.8.10
+    - pyyaml
