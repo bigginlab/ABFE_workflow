@@ -1,6 +1,7 @@
 from abfe.orchestration import generate_conf, generate_snake, generate_scheduler
 
 
+# TODO cluster_config={} is not used
 def build_approach_flow(approach_name: str, num_jobs: int, conf: dict, cluster_config={}, submit=False):
     out_path = conf["out_approach_path"]
     snake_path = out_path + "/Snakefile"
@@ -8,9 +9,10 @@ def build_approach_flow(approach_name: str, num_jobs: int, conf: dict, cluster_c
 
     generate_conf.generate_approach_conf(out_path=approach_conf_path,
                                          out_approach_path=conf["out_approach_path"],
-                                         input_ligands_sdf_path=conf["input_ligands_sdf_path"],
+                                         input_ligand_mol_paths=conf["input_ligand_mol_paths"],
                                          input_protein_pdb_path=conf["input_protein_pdb_path"],
-                                         input_cofactor_sdf_path=conf["input_cofactor_sdf_path"],
+                                         input_cofactor_mol_path=conf["input_cofactor_mol_path"],
+                                         input_membrane_pdb_path=conf["input_membrane_pdb_path"],
                                          ligand_names=conf["ligand_names"],
                                          num_replica=conf['num_replica']
                                          )

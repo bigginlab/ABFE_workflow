@@ -104,7 +104,6 @@ def build_ligand_flows(
         membrane_pdb=input_membrane_path,
         cofactor_mol=input_cofactor_path,
         hmr_factor = hmr_factor,
-        keep_tmp_files_on=None
     )
 
     for input_ligand_path in input_ligand_paths:
@@ -115,7 +114,7 @@ def build_ligand_flows(
         # Create topologies and input files
         builder(ligand_mol=input_ligand_path,out_dir=out_ligand_input_path)
         # Archive original files      
-        with tarfile.open(os.path.join(out_ligand_input_path, 'orig_in'), "w:gz") as tar:
+        with tarfile.open(os.path.join(out_ligand_input_path, 'orig_in.tar.gz'), "w:gz") as tar:
             tar.add(input_ligand_path, arcname=os.path.basename(input_ligand_path))
             tar.add(input_protein_path,arcname=os.path.basename(input_protein_path))
             if input_cofactor_path:
@@ -130,4 +129,4 @@ def build_ligand_flows(
                                        num_max_thread=num_max_thread,
                                        num_replicas=num_replicas, cluster_config=cluster_config, submit=False,
                                        num_jobs=num_jobs)
-
+    builder.clean()

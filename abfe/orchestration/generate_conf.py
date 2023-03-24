@@ -7,9 +7,10 @@ from abfe import template
 
 
 def generate_approach_conf(out_path: str,
-                           input_ligands_sdf_path: str,
+                           input_ligand_mol_paths: str,
                            input_protein_pdb_path: str,
-                           input_cofactor_sdf_path: str,
+                           input_cofactor_mol_path: str,
+                           input_membrane_pdb_path:str,
                            out_approach_path: str,
                            ligand_names: List[str],
                            num_replica: int

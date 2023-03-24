@@ -365,7 +365,7 @@ class MakeInputs:
             membrane_pdb:PathLike = None,
             cofactor_mol:PathLike = None,
             hmr_factor:float = None,
-            keep_tmp_files_on:PathLike = None):
+            builder_dir:PathLike = 'builder'):
         """This class is used for building the systems for ABFE calculation.
         It will create the necessary topology and configuration files, as well the
         correct directory trees.
@@ -383,24 +383,15 @@ class MakeInputs:
             Path of the mol cofactor file. Topology will be generated from OpenFF, by default None
         hmr_factor : float, optional
             The Hydrogen Mass Factor to use, by default None
-        keep_tmp_files_on : PathLike, optional
-            In case that you want to keep the building files, by default None
+        builder_dir : PathLike, optional
+            Where all the building files. After completion you can safely remove calling the method clean, by default builder
         """
         self.protein_pdb = protein_pdb
         self.membrane_pdb = membrane_pdb
         self.cofactor_mol = cofactor_mol
         self.hmr_factor = hmr_factor
-        self.keep_tmp_files_on = keep_tmp_files_on
+        self.wd = os.path.abspath(builder_dir)
         self.__self_was_called = False
-        
-        # Working paths
-        if keep_tmp_files_on:
-            self.wd = keep_tmp_files_on
-        else:
-            self.wd = '.builder'
-        if not os.path.exists(self.wd):
-            os.makedirs(self.wd)
-        self.wd = os.path.abspath(self.wd)
 
         # Initialize vectors and angles based on the information of the PDB only if a membrane system
         if self.membrane_pdb:
@@ -482,7 +473,7 @@ class MakeInputs:
         else:
             return None
         
-        name, _ = os.path.splitext(pdb_file)
+        name, _ = os.path.splitext(os.path.basename(pdb_file))
 
         # TODO, chake what is going wrong, and use this kind of code, much better than call from the command line.
         # fixer = PDBFixer(filename=pdb_file)
@@ -568,20 +559,18 @@ class MakeInputs:
         self.md_system = system_combiner(protein=self.sys_protein, membrane=self.sys_membrane, ligand=self.sys_ligand, cofactor=self.sys_cofactor)
 
     def clean(self):
-        """Small cleaner, if keep_tmp_files_on was not provided,
-        the intermediate steps saved on out_dir/.builder will be deleted
+        """Small cleaner, the intermediate steps saved on builder_dir will be deleted
         """
-        if not self.keep_tmp_files_on:
-            try:
-                shutil.rmtree(self.wd)
-            except FileNotFoundError:
-                pass
+        try:
+            shutil.rmtree(self.wd)
+        except FileNotFoundError:
+            pass
 
     def __call__(self, ligand_mol:PathLike, out_dir = 'abfe'):
         """The call implementation. It identify if it is needed to build
         all the components of the systems,
-        In case that the class was already called, it will assume that all the components of the sytem,
-        with the exception of the ligand, were already builded. This is usefull to call the class
+        In case that the class was already called, it will assume that all the components of the system,
+        with the exception of the ligand, were already builded. This is useful to call the class
         on several ligands that share the same components: protein, membrane and cofactor
 
         Parameters
@@ -615,8 +604,6 @@ class MakeInputs:
         # TODO Check what is done here
         # Construct ABFE system:
         make_abfe_dir(out_dir=self.out_dir, ligand_dir=ligand_dir, sys_dir=system_dir)
-        
-        self.clean()
 
         # Change state
         self.__self_was_called = True
@@ -660,26 +647,10 @@ def __system_builder_cmd():
         type = float,
     )
     parser.add_argument(
-        '--box',
-        help='This is the vectors of the bos in ANGSTROMS. It is important that the provided vector has the correct units, by default %(default)s',
-        dest = 'box',
-        nargs=3,
-        default = None,
-        type = float,
-    )
-    parser.add_argument(
-        '--angles',
-        help='This is the angles between the components of the vector in DEGREES. It is important that the provided vector has the correct units, by default %(default)s',
-        dest = 'angles',
-        nargs=3,
-        default = None,
-        type = float,
-    )
-    parser.add_argument(
-        '--keep_tmp_files_on',
-        help='The directory to kept the build files, by default %(default)s',
-        dest = 'keep_tmp_files_on',
-        default = None,
+        '--builder_dir',
+        help='Where all the building files. After completion you can safely remove calling the method clean, by default %(default)s',
+        dest = 'bu',
+        default = 'abfe',
         type = str,
     )
     parser.add_argument(
@@ -695,9 +666,7 @@ def __system_builder_cmd():
         membrane_pdb=args.membrane_pdb,
         cofactor_mol=args.cofactor_mol,
         hmr_factor=args.hmr_factor,
-        box=args.box,
-        angles=args.angles,
-        keep_tmp_files_on = args.keep_tmp_files_on,
+        builder_dir = args.builder_dir,
     )
     for ligand in glob.glob(os.path.join(args.ligand_mols_path, '*.mol')):
         name, _ = os.path.splitext(os.path.basename(ligand))

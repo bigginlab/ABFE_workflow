@@ -125,7 +125,25 @@ def make_posres_files(input_topology:PathLike, molecules:Iterable[str], out_dir:
                                     posres_str = f"{top_lines[j].split()[0]} 1 2500 2500 2500\n"
                                     posres_file.write(posres_str)
 
-def make_ion_moleculetype_section(ion_name):
+def make_ion_moleculetype_section(ion_name:str) -> str:
+    """A simple function to create the moleculetype section
+    for an ion
+
+    Parameters
+    ----------
+    ion_name : str
+        The ion name, only valid: CL, K, NA
+
+    Returns
+    -------
+    str
+        The GROMACS topology [ moleculetype ] section
+
+    Raises
+    ------
+    ValueError
+        If invalid ion_name
+    """
     internal_data = {
         'CL':{
             'NAME':'CL',
@@ -153,6 +171,9 @@ def make_ion_moleculetype_section(ion_name):
         }, 
     }
 
+    if ion_name not in internal_data:
+        raise ValueError(f"\"{ion_name}\" is invalid ion_name. Only NA, K or CL")
+
     template = "[ moleculetype ]\n"\
             "; name  nrexcl\n"\
             f"{internal_data[ion_name]['NAME']}  3\n\n"\
@@ -161,7 +182,17 @@ def make_ion_moleculetype_section(ion_name):
             f"   1     {internal_data[ion_name]['TYPE']}      1      {internal_data[ion_name]['RESIDUE']}    {internal_data[ion_name]['ATOM']}      1  {internal_data[ion_name]['CHARGE']}    {internal_data[ion_name]['MASS']}\n\n"
     return template
 
-def add_ions_moleculetype(input_topology, output_topology):
+def add_ions_moleculetype(input_topology:PathLike, output_topology:PathLike):
+    """Simple function to fix the topology file if the ions are not yet added
+    as moleculetype
+
+    Parameters
+    ----------
+    input_topology : PathLike
+        Path to the input topology file
+    output_topology : PathLike
+        Path to the output topology file
+    """
 
     molecules = get_molecule_names(input_topology, section='molecules')
     molecule_types = get_molecule_names(input_topology, section = 'moleculetype')
@@ -195,8 +226,18 @@ def add_ions_moleculetype(input_topology, output_topology):
         for line in new_lines:
             out.write(line)
 
-def add_water_ions_param(input_topology, output_topology):
+def add_water_ions_param(input_topology:PathLike, output_topology:PathLike):
+    """Add water and ion atom types to the main [ atomtypes ] section of the topology.
+    Also [ moleculetype ], [ bonds ], [ angles ], [ settles ] and [ exclusions ]
+    sections for the water molecule. This sections were taken from an example of BioSimSpace
 
+    Parameters
+    ----------
+    input_topology : PathLike
+        Path to the input topology file
+    output_topology : PathLike
+        Path to the output topology file
+    """
     with open(input_topology, "r") as topology_file:
         old_lines = topology_file.readlines()
 
@@ -205,7 +246,6 @@ def add_water_ions_param(input_topology, output_topology):
     while i < len(old_lines):
         if '[ atomtypes ]' in old_lines[i]:
             new_lines.append(old_lines[i])
-            # It is safe to use the while because the default section must be at the top of the topology file
             i += 1
             while "[" not in old_lines[i]:
                 new_lines.append(old_lines[i])
@@ -298,6 +338,7 @@ def fix_topology(input_topology: PathLike, out_dir: PathLike, exclusion_list:lis
     print(molecules)
     make_posres_files(input_topology, out_dir = out_dir, molecules = molecules)
     add_posres_section(input_topology, molecules, out_file=out_topology)
+    # In case that everything is fine, add_ions_moleculetype will not modify the topology
     add_ions_moleculetype(out_topology, out_topology)
 
 
