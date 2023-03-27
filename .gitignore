@@ -9,6 +9,8 @@ Snakemake
 data/*
 /examples/CyclophilinD_data/abfe/
 /examples/internal_example
+/examples/2VT4/extra
+/examples/2VT4/abfe
 
 public
 
