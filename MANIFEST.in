@@ -1,0 +1,3 @@
+include LICENSE README.rst AUTHORS
+include abfe/data/gmx_ff/*.tar.gz
+recursive-include abfe/template/ *.mdp

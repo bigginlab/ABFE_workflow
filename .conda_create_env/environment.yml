@@ -10,7 +10,6 @@ dependencies:
   - pdbfixer
   - openmm
   - openff-toolkit
-  - openff-interchange
   - ipykernel
   - ipython
   - ipywidgets

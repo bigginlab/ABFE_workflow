@@ -10,19 +10,6 @@ dependencies:
   - pdbfixer
   - openmm
   - openff-toolkit
-  - openff-interchange
   - openbiosim::biosimspace
   - bioconda::snakemake
   # - nvidia::cuda-toolkit=11.4.2
-  - pip:
-    - alchemlyb==2.0.0
-    - pymbar==4.0.1
-    - MDRestraintsGenerator
-    - matplotlib
-    - numpy
-    - scipy
-    - pandas
-    - mdanalysis
-    - TOFF
-    - tabulate==0.8.10
-    - pyyaml

@@ -8,7 +8,7 @@ A snakemake based workflow for ABFE calculations using GMX. The workflow can be 
 - [Grädler, U.; Schwarz, D.; Blaesse, M.; Leuthner, B.; Johnson, T. L.; Bernard, F.; Jiang, X.; Marx, A.; Gilardone, M.; Lemoine, H.; Roche, D.; Jorand-Lebrun, C. Discovery of novel Cyclophilin D inhibitors starting from three dimensional fragments with millimolar potencies. Bioorganic Medicinal Chemistry Letters 2019, 29, 126717.](https://doi.org/10.1016/j.bmcl.2019.126717)
 
 Here a visualization of the triggered process:
-![img](.img/full_snakemake_DAG.png)
+![img](https://github.com/RiesBen/ABFE_workflow/blob/main/.img/dag-reduced.png?raw=true)
 
 ## Install
 
@@ -93,18 +93,26 @@ Running an ABFE Campaign from Python
 
 ```python
 #!/usr/bin/env python3
-
 import glob
 from abfe import calculate_abfe
 
-ligand_sdfs = glob.glob("./myligands/*sdf")
-receptor_pdb = "./receptor.pdb"
-out_folder = "./Out"
+ligand_mols = glob.glob("inputs/ligands/*mol")
 
-calculate_abfe(protein_pdb_path=receptor_pdb, 
-               ligand_sdf_path=ligand_sdfs, 
-               out_root_folder_path=out_folder,
-               submit=True
-               )
+out_folder = "abfe"
+
+calculate_abfe(
+    protein_pdb_path='inputs/protein.pdb',
+    ligand_mol_paths=ligand_mols,
+    out_root_folder_path="abfe",
+    membrane_pdb_path = 'inputs/membrane.pdb',
+    cofactor_mol_path = 'inputs/dummy_cofactor_23.mol',
+    hmr_factor = 3,
+    approach_name = "",
+    n_cores_per_job= 8,
+    num_jobs_receptor_workflow= None,
+    num_jobs_per_ligand= 40,
+    num_replicas = 3,
+    submit= False,
+    cluster_config = {})
 
 ```

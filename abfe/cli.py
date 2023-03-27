@@ -10,8 +10,7 @@ loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
 for logger in loggers:
     logger.setLevel(logging.NOTSET)
 
-if __name__ == "__main__":
-        # ARGPARSE
+def abfe_run():
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', "--protein_pdb_path", help='Input protein pdb file path', required=True, type=str)
     parser.add_argument('-l', "--ligand_mol_dir",  help='Input ligand(s) mol file path', required=True, type=str) 
@@ -67,3 +66,6 @@ if __name__ == "__main__":
                    submit = args.submit,
                    cluster_config=cluster_config,
                    )
+
+
+if __name__ == "__main__":...

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-This script is an example execution running the example CyclophilinD abfe simulations.
+This script is an example execution running for membrane systems.
 """
 import os
 import glob

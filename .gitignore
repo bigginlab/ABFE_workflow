@@ -16,3 +16,7 @@ public
 
 .pytest_cache
 .vscode
+
+*.egg-info
+build
+dist
