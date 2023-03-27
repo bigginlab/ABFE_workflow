@@ -31,6 +31,9 @@ def calculate_abfe(
     conf["input_protein_pdb_path"] = os.path.abspath(protein_pdb_path)
     conf["input_ligand_mol_paths"] = [os.path.abspath(ligand_mol_path) for ligand_mol_path in ligand_mol_paths]
 
+    if not conf["input_ligand_mol_paths"]:
+        raise ValueError(f'There were not provided any ligands or they are not accessible on: {ligand_mol_paths}')
+
     if cofactor_mol_path:
         conf["input_cofactor_mol_path"] = os.path.abspath(cofactor_mol_path)
     else:
