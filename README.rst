@@ -5,8 +5,8 @@ ABFE_workflow
 
 A snakemake based workflow for ABFE calculations using GMX. The workflow can be scaled on Slurm Queuing systems. The here provided Cyclophilin D Test systems and experimental values originate from:
 
-  * [Alibay, I.; Magarkar, A.; Seeliger, D.; Biggin, P. C. Evaluating the use of absolute binding free energy in the fragment optimisation process. Communications Chemistry 2022, 5, 105.](https://doi.org/10.1038/s42004-022-00721-4)
-  * [Grädler, U.; Schwarz, D.; Blaesse, M.; Leuthner, B.; Johnson, T. L.; Bernard, F.; Jiang, X.; Marx, A.; Gilardone, M.; Lemoine, H.; Roche, D.; Jorand-Lebrun, C. Discovery of novel Cyclophilin D inhibitors starting from three dimensional fragments with millimolar potencies. Bioorganic Medicinal Chemistry Letters 2019, 29, 126717.](https://doi.org/10.1016/j.bmcl.2019.126717)
+* [Alibay, I.; Magarkar, A.; Seeliger, D.; Biggin, P. C. Evaluating the use of absolute binding free energy in the fragment optimisation process. Communications Chemistry 2022, 5, 105.](https://doi.org/10.1038/s42004-022-00721-4)
+* [Grädler, U.; Schwarz, D.; Blaesse, M.; Leuthner, B.; Johnson, T. L.; Bernard, F.; Jiang, X.; Marx, A.; Gilardone, M.; Lemoine, H.; Roche, D.; Jorand-Lebrun, C. Discovery of novel Cyclophilin D inhibitors starting from three dimensional fragments with millimolar potencies. Bioorganic Medicinal Chemistry Letters 2019, 29, 126717.](https://doi.org/10.1016/j.bmcl.2019.126717)
 
 Here a visualization of the triggered process:
 
@@ -17,11 +17,11 @@ Here a visualization of the triggered process:
 Install
 -------
 
-First we will install the conda dependencies from the `environment.yml <https://github.com/bigginlab/ABFE_workflow/blob/main/environment.yml>`__.
+First we will install the conda dependencies from the `environment.yml <https://github.com/bigginlab/ABFE_workflow/blob/main/environment.yml>`__ (You can download or copy the content
+in your local).
 
 .. code-block:: bash
 
-  cd ABFE_workflow
   conda env create --file environment.yml
 
 Then, just pip install from the repo:
@@ -138,5 +138,5 @@ Running an ABFE Campaign from Python
 
 
 ..  |workflow|  image:: https://github.com/RiesBen/ABFE_workflow/blob/main/.img/dag-reduced.png?raw=true
-    :target: https://github.com/RiesBen/ABFE_workflow/
+    :target: https://github.com/RiesBen/ABFE_workflow/blob/main/.img/dag-reduced.png?raw=true
     :alt: logo
