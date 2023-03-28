@@ -11,3 +11,6 @@ if __pre_version_tuple__:
 else:
     __version_tuple__ = __main_version_tuple__
     __version__ = '.'.join([str(i) for i in __main_version_tuple__])
+
+__version__ = __version__
+__version_tuple__ = __version_tuple__
