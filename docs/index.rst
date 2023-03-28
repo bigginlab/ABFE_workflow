@@ -4,8 +4,8 @@
    contain the root `toctree` directive.
 
 Welcome to ABFE_workflow's documentation!
-====================================
-.. include:: ../README.md
+=========================================
+.. include:: ../README.rst
 
 .. toctree::
    :caption: User guide

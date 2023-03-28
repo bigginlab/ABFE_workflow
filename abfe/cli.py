@@ -4,7 +4,7 @@ import glob, os
 import argparse
 import yaml
 
-from abfe import calculate_abfe
+from abfe import calculate_abfe, __version__
 import logging
 loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
 for logger in loggers:
@@ -37,7 +37,7 @@ def abfe_run():
                         "   mem=5000"
                         , required=False, default = None, type=str)
     parser.add_argument('-submit',help='Will automatically submit the ABFE calculations', required=False, action='store_true')
-
+    parser.add_argument('-v', '--version', action='version', version=f"abfe: {__version__}")
 
     args = parser.parse_args()
   

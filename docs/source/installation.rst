@@ -27,6 +27,8 @@ If you want to modify the code and contribute, then:
 .. code-block:: bash
 
     git clone https://github.com/bigginlab/ABFE_workflow.git
+    cd ABFE_workflow 
     mamba env create --file environment.yml
     conda activate abfe
-    conda develop ${PWD}
+    pip install git+https://github.com/bigginlab/ABFE_workflow.git
+    python -m pip install -e .
