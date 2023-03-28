@@ -1,25 +1,27 @@
 Installation
 ============
 
-In the root of the project there is a ``environment.yml`` with the corresponded dependencies. You just need to copy this file to you local
-machine, then
+Install conda dependencies
+--------------------------
 
+.. note::
 
-.. code-block:: bash
-
-  cd ABFE_workflow
-  conda env create --file environment.yml
-
-In case that the conda takes forever during the step `Solving environment`, consider to use `mamba` instead to solve the environment.
-For that you need to install mamba in the base environment like: `conda install mamba -n base -c conda-forge`. If the mamba Installation
-on the base environment is also taking long time, then
+  To deal with the complexity of the dependencies is advised to use ``mamba install`` instead of ``conda install``.
+  The issues cam basically from ``biosimspace`` and ``snakemake``.
 
 .. code-block:: bash
 
-  conda create -c conda-forge -n mamba  mamba -y
-  conda activate mamba
-  mamba env create --file environment.yml
+  mamba create -n abfe python=3.9 -y
   conda activate abfe
+  mamba install -c conda-forge gromacs=2022.2 parmed pdbfixer openmm openff-toolkit -y
+  mamba install -c openbiosim biosimspace -y
+  mamba install -c bioconda snakemake -y
+
+pip install from the repo
+-------------------------
+
+.. code-block:: bash
+
   pip install git+https://github.com/bigginlab/ABFE_workflow.git
 
 If you want to modify the code and contribute, then:
@@ -28,7 +30,5 @@ If you want to modify the code and contribute, then:
 
     git clone https://github.com/bigginlab/ABFE_workflow.git
     cd ABFE_workflow 
-    mamba env create --file environment.yml
     conda activate abfe
-    pip install git+https://github.com/bigginlab/ABFE_workflow.git
     python -m pip install -e .

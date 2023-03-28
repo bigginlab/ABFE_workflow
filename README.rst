@@ -22,13 +22,16 @@ in your local).
 
 .. code-block:: bash
 
-  conda env create --file environment.yml
+  mamba create -n abfe python=3.9 -y
+  conda activate abfe
+  mamba install -c conda-forge gromacs=2022.2 parmed pdbfixer openmm openff-toolkit -y
+  mamba install -c openbiosim biosimspace -y
+  mamba install -c bioconda snakemake -y
 
 Then, just pip install from the repo:
 
 .. code-block:: bash
 
-  conda activate abfe
   pip install git+https://github.com/bigginlab/ABFE_workflow.git
 
 Usage
