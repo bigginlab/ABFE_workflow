@@ -9,6 +9,8 @@ import tempfile
 import copy
 from typing import Union, Iterable
 import tarfile
+import logging
+logger = logging.getLogger(__name__)
 
 from abfe.home import home
 from abfe.scripts.preparation.gmx_topology import fix_topology, add_water_ions_param
@@ -147,8 +149,8 @@ def system_combiner(**md_elements):
                 except NameError:
                     md_system = copy.copy(md_elements[element])
     else:
-        raise RuntimeError(f"system_combiner failed with the inputs: {md_elements}")
-    print(f"The system was constructed as fallow: {' + '.join([key for key in md_elements if md_elements[key]])}")
+        raise RuntimeError(f"\t* system_combiner failed with the inputs: {md_elements}")
+    print(f"\t* The system was constructed as fallow: {' + '.join([key for key in md_elements if md_elements[key]])}")
     return md_system
 
 def parmed_solvate(
@@ -163,8 +165,7 @@ def parmed_solvate(
         nname:str = "CL",
         rmin:float = 1.0,
         out_dir:PathLike = '.'):
-    
-    print("Solvating the system in: ", out_dir)
+
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
@@ -236,7 +237,6 @@ def bss_solvate(bss_system:object, out_dir:PathLike = '.', vectors:Iterable[floa
     ValueError
         if angles does not have three elements
     """
-    print("Solvating the system in: ", out_dir)
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     if isinstance(bss_system, Structure):
@@ -404,7 +404,8 @@ class MakeInputs:
             cryst_info.from_pdb(self.membrane_pdb)
             self.vectors = (cryst_info.a/10, cryst_info.b/10, cryst_info.c/10) # Must convert form Angstrom to nm
             self.angles = (cryst_info.alpha, cryst_info.beta, cryst_info.gamma)
-            print(f"This is a membrane system. Crystal information was taken from {self.membrane_pdb} and it will be used for solvating the system. {cryst_info}")
+            
+            logger.info(f"This is a membrane system. Crystal information was taken from {self.membrane_pdb} and it will be used for solvating the system as a GROMACS triclinic box: \n\t\t{cryst_info}")
         else:
             self.vectors, self.angles  = None, None
 
@@ -428,7 +429,7 @@ class MakeInputs:
         """
 
         if mol_file:
-            print(f'Processing {mol_file}')
+            print(f'\t\t- Getting OpenFF parameters for: {mol_file}')
         else:
             return None
         
@@ -474,7 +475,10 @@ class MakeInputs:
         """
 
         if pdb_file:
-            print(f'Processing {pdb_file}')
+            if is_membrane:
+                print(f'\t\t- Getting Slipid2020 parameters for: {pdb_file}')
+            else:
+                print(f'\t\t- Getting amber99sb-ildn parameters for: {pdb_file}')
         else:
             return None
         
@@ -543,7 +547,7 @@ class MakeInputs:
         ligand_mol : PathLike
             Path of the ligand mol file
         """
-        print("Processing components of the system...")
+        print("\t* Processing system components")
         self.sys_ligand = self.openff_process(
             mol_file = ligand_mol,
             name="LIG",
@@ -551,7 +555,7 @@ class MakeInputs:
         
         # Only if the class has not yet called the full build will be carry out.
         if self.__self_was_called:
-            print(f"Reusing components from cache")
+            print(f"\t\t- Reusing components from cache")
         else:
             self.sys_cofactor = self.openff_process(
                 mol_file = self.cofactor_mol,
@@ -559,7 +563,7 @@ class MakeInputs:
                 safe_naming_prefix='z')
             self.sys_protein = self.gmx_process(pdb_file = self.protein_pdb)
             self.sys_membrane = self.gmx_process(pdb_file = self.membrane_pdb, is_membrane = True)
-        print("Merging Components...")
+        print("\t\t- Merging Components")
         # Cofactor at the end in case is a water molecule, not complains from GROMACS after solvation
         self.md_system = system_combiner(protein=self.sys_protein, membrane=self.sys_membrane, ligand=self.sys_ligand, cofactor=self.sys_cofactor)
 
@@ -585,6 +589,7 @@ class MakeInputs:
         out_dir : str, optional
             Where you would like to export the generated files, by default 'abfe'
         """
+        print('\n'+50*"=")
         print(f"Processing ligand: {ligand_mol}")
         # Update (on multiple calls) or just create the out_dir (first call)
         self.out_dir = out_dir
@@ -596,22 +601,30 @@ class MakeInputs:
         system_dir = os.path.join(self.wd, 'system')
         ligand_dir = os.path.join(self.wd, 'ligand')
 
+        print("\t* Solvating:")
         if self.membrane_pdb:
+            print("\t\t- Complex in: ", system_dir)
             parmed_solvate(self.md_system, bt='triclinic', box = self.vectors,angles=self.angles, out_dir=system_dir)
+            print("\t\t- Ligand in: ", system_dir)
             parmed_solvate(self.sys_ligand, bt='octahedron', d = 1.5, out_dir=ligand_dir)
         else:
+            print("\t\t- Complex in: ", system_dir)
             bss_solvate(self.md_system, out_dir=system_dir)
+            print("\t\t- Ligand in: ", system_dir)
             bss_solvate(self.sys_ligand, out_dir=ligand_dir)
 
+        print("\t* Fixing topologies")
         fix_topology(input_topology=os.path.join(system_dir,'solvated.top'), out_dir=system_dir)
         fix_topology(input_topology=os.path.join(ligand_dir,'solvated.top'), out_dir=ligand_dir)
         
         # TODO Check what is done here
         # Construct ABFE system:
+        print(f"\t* Final build of ABFE directory on: {self.out_dir}")
         make_abfe_dir(out_dir=self.out_dir, ligand_dir=ligand_dir, sys_dir=system_dir)
 
         # Change state
         self.__self_was_called = True
+        print('\nDone!\n'+50*"="+'\n')
 
 def __system_builder_cmd():
     """

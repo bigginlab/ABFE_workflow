@@ -196,7 +196,6 @@ def add_ions_moleculetype(input_topology:PathLike, output_topology:PathLike):
 
     molecules = get_molecule_names(input_topology, section='molecules')
     molecule_types = get_molecule_names(input_topology, section = 'moleculetype')
-    print(molecule_types)
     ions = ['CL', 'NA', 'K']
     ions_moleculetype = ''
     for possible_ion in set(molecules) - set(molecule_types):
@@ -333,9 +332,7 @@ def fix_topology(input_topology: PathLike, out_dir: PathLike, exclusion_list:lis
     """
     name, ext = os.path.splitext(os.path.basename(input_topology))
     out_topology = os.path.join(out_dir, f"{name}_fix{ext}")
-    print(get_molecule_names(input_topology))
     molecules = list(set(get_molecule_names(input_topology)) - set(exclusion_list))
-    print(molecules)
     make_posres_files(input_topology, out_dir = out_dir, molecules = molecules)
     add_posres_section(input_topology, molecules, out_file=out_topology)
     # In case that everything is fine, add_ions_moleculetype will not modify the topology
