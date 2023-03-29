@@ -1,3 +1,1 @@
 include LICENSE README.rst AUTHORS
-recursive-include abfe/data/ *.tar.gz
-recursive-include abfe/template/ *.mdp
