@@ -1,20 +1,25 @@
 #!/usr/bin/env python
+import warnings
 import glob
 import os
 import shutil
 import subprocess
 import argparse
 import tempfile
-from warnings import warn
-
-from abfe.home import home
+import copy
 from typing import Union, Iterable
 import tarfile
 
-import copy
-from toff import Parameterize
+from abfe.home import home
 from abfe.scripts.preparation.gmx_topology import fix_topology, add_water_ions_param
-import BioSimSpace as bss
+
+from toff import Parameterize
+
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=DeprecationWarning)
+    import BioSimSpace as bss
+    
+
 from  parmed.gromacs import GromacsTopologyFile, GromacsGroFile
 from parmed.structure import Structure
 from parmed.tools.actions import HMassRepartition
@@ -325,7 +330,7 @@ class CRYST1:
                     self.__is_init = True
                     break
         if not self.__is_init:
-            warn('from_pdb was not able to initialize {self.__class__.__name__}')
+            warnings.warn('from_pdb was not able to initialize {self.__class__.__name__}')
     
     def get_bss_vectors(self) -> tuple[bss.Types.Length]:
         """get BioSimSpace vectors from the CRYST1 information

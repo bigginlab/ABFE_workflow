@@ -5,8 +5,6 @@ from typing import List
 from abfe.orchestration.build_approach_flow import build_approach_flow
 from abfe.orchestration.build_ligand_flow import build_ligand_flows
 from abfe.scripts import final_receptor_results
-
-
 def calculate_abfe(
         protein_pdb_path: str,
         ligand_mol_paths: List[str],

@@ -9,7 +9,7 @@ dependencies:
   - pdbfixer
   - openmm
   - openff-toolkit
-  - openbiosim::biosimspace
+  - michellab/label/dev::biosimspace
   - bioconda::snakemake
   # - nvidia::cuda-toolkit=11.4.2
   - pip:

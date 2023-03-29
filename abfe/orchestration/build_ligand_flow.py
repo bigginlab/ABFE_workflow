@@ -1,10 +1,8 @@
 import os
 import tarfile
 from typing import List
-
-from abfe.scripts.preparation import system_builder as sb
-
 import abfe
+from abfe.scripts.preparation import system_builder as sb
 from abfe.orchestration import generate_conf, generate_snake, generate_scheduler
 
 
