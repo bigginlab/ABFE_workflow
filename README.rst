@@ -17,22 +17,21 @@ Here a visualization of the triggered process:
 Install
 -------
 
-First we will install the conda dependencies from the `environment.yml <https://github.com/bigginlab/ABFE_workflow/blob/main/environment.yml>`__ (You can download or copy the content
-in your local).
+We will use `mamba <https://mamba.readthedocs.io/en/latest/>`__. First, you must download `environment.yml <https://github.com/bigginlab/ABFE_workflow/blob/main/environment.yml>`__.
+
+If you do not have ``mamba`` installed, then:
 
 .. code-block:: bash
 
-  mamba create -n abfe python=3.9 -y
-  conda activate abfe
-  mamba install -c conda-forge gromacs=2022.2 parmed pdbfixer openmm openff-toolkit -y
-  mamba install -c openbiosim biosimspace -y
-  mamba install -c bioconda snakemake -y
+  conda install mamba -n base -c conda-forge
 
-Then, just pip install from the repo:
+.. warning::
+
+  You could try also with `conda <https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html>`__ but it could take a while.
 
 .. code-block:: bash
 
-  pip install git+https://github.com/bigginlab/ABFE_workflow.git
+  mamba env create -f environment.yml
 
 Usage
 -----
