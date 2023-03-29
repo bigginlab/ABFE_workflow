@@ -4,8 +4,9 @@ approach_path = config["out_approach_path"]
 
 #Final Check Job
 
-# System Generation
-include: 'build_ligand_systems.smk'
+
+# # System Generation. It is already done on the first step.
+# include: 'build_ligand_systems.smk'
 
 # run Simulations:
 include: 'simulations.smk'
