@@ -30,7 +30,7 @@ def calculate_abfe(
     conf["input_ligand_mol_paths"] = [os.path.abspath(ligand_mol_path) for ligand_mol_path in ligand_mol_paths]
 
     if not conf["input_ligand_mol_paths"]:
-        raise ValueError(f'There were not provided any ligands or they are not accessible on: {ligand_mol_paths}')
+        raise ValueError(f'There were not any ligands or they are not accessible on: {ligand_mol_paths}')
 
     if cofactor_mol_path:
         conf["input_cofactor_mol_path"] = os.path.abspath(cofactor_mol_path)
@@ -54,25 +54,26 @@ def calculate_abfe(
     # Prepare Input / Parametrize
     os.chdir(conf["out_approach_path"])
 
-    conf["ligand_names"] = [os.path.splitext(os.path.basename(mol))[0] for mol in conf["input_ligand_mol_paths"]]
-    conf["num_jobs"] = num_jobs_receptor_workflow if (num_jobs_receptor_workflow is not None) else len(conf["ligand_names"]) * num_replicas * 2
+    conf["ligand_basenames"] = [os.path.basename(mol) for mol in conf["input_ligand_mol_paths"]]
+    conf["num_jobs"] = num_jobs_receptor_workflow if (num_jobs_receptor_workflow is not None) else len(conf["ligand_basenames"]) * num_replicas * 2
     conf["num_replica"] = num_replicas
 
     print("Prepare")
     print("\tstarting preparing ABFE-ligand file structure")
 
+    # TODO At some point I have to specify the HMR factor for when the snake and MakeInput is called
+    # It is already saved on conf
     build_ligand_flows(input_ligand_paths=conf["input_ligand_mol_paths"],
                        input_protein_path=conf["input_protein_pdb_path"],
                        input_cofactor_path=conf["input_cofactor_mol_path"],
                        input_membrane_path=conf["input_membrane_pdb_path"],
-                       hmr_factor = conf["hmr_factor"],
                        out_root_path=conf["out_approach_path"],
                        num_max_thread=n_cores_per_job,
                        num_replicas=num_replicas, num_jobs=num_jobs_per_ligand,
                        cluster_config=cluster_config)
 
     print("\tstarting preparing ABFE-Approach file structur: ", out_root_folder_path)
-    expected_out_paths = int(num_replicas) * len(conf["ligand_names"])
+    expected_out_paths = int(num_replicas) * len(conf["ligand_basenames"])
     result_paths = glob.glob(conf["out_approach_path"] + "/*/*/dG*csv")
 
     if (len(result_paths) != expected_out_paths):

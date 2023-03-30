@@ -12,6 +12,8 @@ data/*
 /examples/2VT4/extra
 /examples/2VT4/abfe
 
+# Dealing with membranes
+/abfe/template/complex_memb_equil_workflow
 public
 
 .pytest_cache
@@ -20,3 +22,5 @@ public
 *.egg-info
 build
 dist
+
+ideas

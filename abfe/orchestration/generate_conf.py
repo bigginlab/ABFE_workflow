@@ -12,7 +12,7 @@ def generate_approach_conf(out_path: str,
                            input_cofactor_mol_path: str,
                            input_membrane_pdb_path:str,
                            out_approach_path: str,
-                           ligand_names: List[str],
+                           ligand_basenames: List[str],
                            num_replica: int
                            ):
     ## Ugly implementation every defined variable is added to conf! :)

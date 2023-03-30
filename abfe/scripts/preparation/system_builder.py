@@ -589,7 +589,7 @@ class MakeInputs:
         out_dir : str, optional
             Where you would like to export the generated files, by default 'abfe'
         """
-        print('\n'+50*"=")
+        print('\n\t'+42*"-")
         print(f"Processing ligand: {ligand_mol}")
         # Update (on multiple calls) or just create the out_dir (first call)
         self.out_dir = out_dir
@@ -624,7 +624,7 @@ class MakeInputs:
 
         # Change state
         self.__self_was_called = True
-        print('\nDone!\n'+50*"="+'\n')
+        print("\n\t--------- Calculation Completed ----------\n")
 
 def __system_builder_cmd():
     """

@@ -13,7 +13,7 @@ def build_approach_flow(approach_name: str, num_jobs: int, conf: dict, cluster_c
                                          input_protein_pdb_path=conf["input_protein_pdb_path"],
                                          input_cofactor_mol_path=conf["input_cofactor_mol_path"],
                                          input_membrane_pdb_path=conf["input_membrane_pdb_path"],
-                                         ligand_names=conf["ligand_names"],
+                                         ligand_basenames=conf["ligand_basenames"],
                                          num_replica=conf['num_replica']
                                          )
 

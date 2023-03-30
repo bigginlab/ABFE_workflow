@@ -1,52 +1,34 @@
-from abfe import scripts
-
+from abfe.scripts.preparation import system_builder as sb
+import os
 #Final Check Job
-approach_path = config["out_approach_path"]
-ligand_names = config['ligand_names']
+out_approach_path = config["out_approach_path"]
+# ligand_basenames = config['ligand_basenames']
+input_protein_pdb_path = config['input_protein_pdb_path']
+input_membrane_pdb_path = config['input_membrane_pdb_path']
+input_ligand_mol_paths = config['input_ligand_mol_paths']
+ligand_names = config['ligand_basenames']
+input_cofactor_mol_path = config['input_cofactor_mol_path']
+hmr_factor = float(config['hmr_factor'])
 
-input_protein_pdb = config['input_protein_pdb_path']
-input_ligand_sdfs = config['input_ligands_sdf_path']
-input_cofactor_sdf = config['input_cofactor_sdf_path']
-
-
-rule gather_files:
-    input:
-        ligand_sdfs=expand("{input_ligand_sdfs}", input_ligand_sdfs=input_ligand_sdfs)
-    params:
-        out_dir = approach_path+"/orig_input"
-    output:
-        out_files = expand(approach_path+"/orig_input/{ligand_name}.sdf", ligand_name=ligand_names)
-
-    shell:
-        """
-            mkdir {params.out_dir} -p
-            ligand_files="{input.ligand_sdfs}"
-            echo "$ligand_files"
-
-            for ligand_sdf in "$ligand_files"
-            do
-                cp $ligand_sdf {params.out_dir}
-            done
-        """
 
 rule build_ligand_system:
     input:
-        # TODO Now the class can work with all the ligands at hte same time, but they must be .mol
-        protein_pdb= input_protein_pdb,
-        ligand_sdf=approach_path+"/orig_input/{ligand_name}.sdf",
-        output_dir= approach_path+"/{ligand_name}/input"
-    params:
-        cofactor_sdf= str(input_cofactor_sdf),
-        script_dir = scripts.root_path
+        input_ligand_mol_paths=input_ligand_mol_paths
     output:
-        out_ligand_gro=approach_path+"/{ligand_name}/input/ligand/ligand.gro",
-        out_ligand_top=approach_path+"/{ligand_name}/input/ligand/ligand.top",
-        out_complex_gro=approach_path+"/{ligand_name}/input/complex/complex.gro",
-        out_complex_top=approach_path+"/{ligand_name}/input/complex/complex.top"
-    shell:
-        # TODO Generalize in case of COF of membrnaes, right now is not taked into account
-        """
-            python {params.script_dir}/preparation/system_builder.py --ligand_mol_dir {input.ligand_mol} \
-            --protein_pdb_path {input.protein_pdb} \
-            --cofactor_sdf_path {params.cofactor_sdf} --output_dir_path {input.output_dir}
-        """
+        expand(out_approach_path+"/{ligand_name}/input/{sytem_type}/{sytem_type}.{ext}", ligand_name=ligand_names, ext=['gro', 'top'], sytem_type=['ligand', 'complex'])
+    run:
+        # Initialize the files builder
+        builder = sb.MakeInputs(
+            protein_pdb=input_protein_pdb_path,
+            membrane_pdb=input_membrane_pdb_path,
+            cofactor_mol=input_cofactor_mol_path,
+            hmr_factor = hmr_factor,
+        )
+
+        for input_ligand_mol_path, ligand_name in zip(input['input_ligand_mol_paths'], ligand_names):
+            out_ligand_path = os.path.join(out_approach_path, ligand_name)
+            out_ligand_input_path = os.path.join(out_ligand_path, 'input')
+
+            # Create topologies and input files
+            builder(ligand_mol=input_ligand_mol_path,out_dir=out_ligand_input_path)
+        builder.clean()
