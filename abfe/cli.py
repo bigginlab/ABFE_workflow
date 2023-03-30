@@ -49,8 +49,8 @@ def abfe_run():
         "mem": "5000",
     }
 
-    if args.slrum_config:
-        with open(args.slrum_config, 'r') as c:
+    if args.slurm_config:
+        with open(args.slurm_config, 'r') as c:
             cluster_config = default_cluster_config.update(yaml.safe_load(c))
     else:
         cluster_config = default_cluster_config
