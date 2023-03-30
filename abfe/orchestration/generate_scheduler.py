@@ -26,12 +26,14 @@ class scheduler():
             "",
             # "conda activate abfe",
         ]
+        # TODO: It is more general to construct dynamically any slurm command based on the cluster config, --{key} {self.cluster_config[key}}
         for i, job_path in enumerate(self.out_job_path):
             basename = os.path.basename(job_path).replace(".sh", "")
             file_str.extend([
                 "",
                 "cd " + os.path.dirname(job_path),
-                "job" + str(i) + f"=$(sbatch -p {self.cluster_config['partition']} -c " + str(self.n_cores) + " -J " + str(
+                 # TODO: str(self.n_cores) gives a to higher number, and the cluster does not have this resources.
+                "job" + str(i) + f"=$(sbatch -p {self.cluster_config['partition']} --time {self.cluster_config['time']} -c " + str(self.n_cores) + " -J " + str(
                     out_prefix + "_" + basename) + "_scheduler " + job_path + ")",
                 "jobID" + str(i) + "=$(echo $job" + str(i) + " | awk '{print $4}')",
                 "echo \"${jobID" + str(i) + "}\"",
@@ -40,7 +42,7 @@ class scheduler():
         if (len(self.out_job_path) > 1):
             file_str.append("\n")
             file_str.append("echo " + ":".join(["${jobID" + str(i) + "}" for i in range(len(self.out_job_path))]))
-            file_str.append("sbatch -p cpu  --dependency=afterok:" + ":".join(
+            file_str.append(f"sbatch -p {self.cluster_config['partition']} --time {self.cluster_config['time']}  --dependency=afterok:" + ":".join(
                 ["${jobID" + str(i) + "}" for i in range(len(self.out_job_path))]) + " -c " + str(
                 self.n_cores) + " -J " + str(out_prefix + "_final_ana") + "_scheduler " + self._final_job_path)
 
