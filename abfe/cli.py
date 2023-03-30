@@ -41,9 +41,9 @@ def abfe_run():
 
     args = parser.parse_args()
     print(args)
-    mol_paths = glob.glob(os.path.join(args.ligand_mol_dir, "*.mol|*.sdf"))
+    mol_paths = [f for pattern in ["*.mol", "*.sdf"] for f in glob.glob(os.path.join(args.ligand_mol_dir, pattern))]
     
-    default_cluster_config ={
+    cluster_config ={
         "partition": "cpu",
         "time": "60:00:00",
         "mem": "5000",
@@ -51,9 +51,10 @@ def abfe_run():
 
     if args.slurm_config:
         with open(args.slurm_config, 'r') as c:
-            cluster_config = default_cluster_config.update(yaml.safe_load(c))
-    else:
-        cluster_config = default_cluster_config
+            cluster_config.update(yaml.safe_load(c))
+    
+    print(cluster_config)
+
     
     calculate_abfe(protein_pdb_path = args.protein_pdb_path,
                    ligand_mol_paths = mol_paths,

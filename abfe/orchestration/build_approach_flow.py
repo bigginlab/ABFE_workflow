@@ -1,8 +1,7 @@
 from abfe.orchestration import generate_conf, generate_snake, generate_scheduler
 
 
-# TODO cluster_config={} is not used
-def build_approach_flow(approach_name: str, num_jobs: int, conf: dict, cluster_config={}, submit=False):
+def build_approach_flow(approach_name: str, num_jobs: int, conf: dict, cluster_config:dict, submit=False):
     out_path = conf["out_approach_path"]
     snake_path = out_path + "/Snakefile"
     approach_conf_path = out_path + "/snake_conf.json"
@@ -13,14 +12,16 @@ def build_approach_flow(approach_name: str, num_jobs: int, conf: dict, cluster_c
                                          input_protein_pdb_path=conf["input_protein_pdb_path"],
                                          input_cofactor_mol_path=conf["input_cofactor_mol_path"],
                                          input_membrane_pdb_path=conf["input_membrane_pdb_path"],
-                                         ligand_basenames=conf["ligand_basenames"],
+                                         hmr_factor=conf["hmr_factor"],
+                                         ligand_names=conf["ligand_names"],
                                          num_replica=conf['num_replica']
                                          )
 
+    # TODO fix pass same info time partition and then as for the cluster config, ask from the initialization step.
     generate_snake.generate_approach_snake_file(out_file_path=snake_path,
                                                 conf_file_path=approach_conf_path)
 
-    scheduler = generate_scheduler.scheduler(out_dir_path=out_path, n_cores=num_jobs)
+    scheduler = generate_scheduler.scheduler(out_dir_path=out_path, n_cores=num_jobs, cluster_config=cluster_config,)
     scheduler.generate_job_file(cluster=False,
                                 out_prefix=approach_name, num_jobs=num_jobs,
                                 snake_job="")

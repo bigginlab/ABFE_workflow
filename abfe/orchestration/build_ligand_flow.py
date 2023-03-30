@@ -52,7 +52,7 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                            conf_file_path=conf_path)
 
         # build scheduler class
-        scheduler = generate_scheduler.scheduler(out_dir_path=out_replica_path, n_cores=n_cores)
+        scheduler = generate_scheduler.scheduler(out_dir_path=out_replica_path, n_cores=n_cores, cluster_config=cluster_config)
 
         generate_conf.generate_ligand_conf(out_path=conf_path,
                                            run_path=out_replica_path,
@@ -62,7 +62,7 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                            code_path=code_path
                                            )
 
-        job_file_path = scheduler.generate_job_file(cluster=True, cluster_config=cluster_config,
+        job_file_path = scheduler.generate_job_file(cluster=True,
                                                     cluster_conf_path=os.path.join(out_replica_path, "cluster_conf.json"),
                                                     out_prefix=ligand_rep_name, num_jobs=num_jobs)
         scheduler.out_job_path = [job_file_path]

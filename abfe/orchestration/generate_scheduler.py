@@ -8,13 +8,14 @@ from abfe.orchestration import slurm_status
 
 class scheduler():
 
-    def __init__(self, out_dir_path: str, n_cores: int = 1, time: str = "96:00:00", partition="cpu") -> None:
+    def __init__(self, out_dir_path: str, n_cores: int = 1, cluster_config: dict = None) -> None:
         self.n_cores = n_cores
         self.out_dir_path = out_dir_path
         self.out_job_path = out_dir_path + "/job.sh"
         self.out_scheduler_path = out_dir_path + "/scheduler.sh"
-        self.time = time
-        self.partition = partition
+        self.cluster_config = {'partition':'cpu','time':'96:00:00', "mem": "5000"}
+        if cluster_config:
+            self.cluster_config.update(cluster_config)
 
     def generate_scheduler_file(self, out_prefix):
         if (isinstance(self.out_job_path, str)):
@@ -30,7 +31,7 @@ class scheduler():
             file_str.extend([
                 "",
                 "cd " + os.path.dirname(job_path),
-                "job" + str(i) + "=$(sbatch -p cpu -c " + str(self.n_cores) + " -J " + str(
+                "job" + str(i) + f"=$(sbatch -p {self.cluster_config['partition']} -c " + str(self.n_cores) + " -J " + str(
                     out_prefix + "_" + basename) + "_scheduler " + job_path + ")",
                 "jobID" + str(i) + "=$(echo $job" + str(i) + " | awk '{print $4}')",
                 "echo \"${jobID" + str(i) + "}\"",
@@ -51,25 +52,13 @@ class scheduler():
 
         return self.out_scheduler_path
 
-    def generate_job_file(self, out_prefix, cluster_conf_path: str = None, cluster_config: dict = None, cluster=False,
+    def generate_job_file(self, out_prefix, cluster_conf_path: str = None, cluster=False,
                           num_jobs: int = 1, latency_wait: int = 120, snake_job=""):
         if (cluster and cluster_conf_path is not None):
             root_dir = os.path.dirname(cluster_conf_path)
             slurm_logs = os.path.dirname(cluster_conf_path) + "/slurm_logs"
             if (not os.path.exists(slurm_logs)): os.mkdir(slurm_logs)
 
-            def_cluster_config = {
-                "partition": "cpu",
-                "mem": "5000",
-            }
-
-            for def_key, def_val in def_cluster_config.items():
-                if (def_key not in cluster_config):
-                    cluster_config[def_key] = def_val
-
-            if (not all([x in cluster_config for x in ["partition", "mem"]])):
-                raise ValueError("missing keys in cluster_config! at least give: [\"partition\", \"time\", \"mem\"] ",
-                                 cluster_config)
 
             if (out_prefix == ""):
                 name = str(out_prefix) + "{name}.{jobid}"
@@ -78,7 +67,7 @@ class scheduler():
                 name = str(out_prefix) + ".{name}.{jobid}"
                 log = slurm_logs + "/" + str(out_prefix) + "_{name}_{jobid}"
 
-            cluster_config.update({
+            self.cluster_config.update({
                 "cpus-per-task": '{threads}',
                 "cores-per-socket": '{threads}',
                 "chdir": root_dir,
@@ -87,8 +76,8 @@ class scheduler():
                 "error": "\\\"" + log + ".err\\\""
             })
 
-            json.dump(cluster_config, open(cluster_conf_path, "w"), indent="  ")
-            cluster_options = " ".join(["--" + key + "=" + str(val) + " " for key, val in cluster_config.items()]) + " --parsable"
+            json.dump(self.cluster_config, open(cluster_conf_path, "w"), indent="  ")
+            cluster_options = " ".join(["--" + key + "=" + str(val) + " " for key, val in self.cluster_config.items()]) + " --parsable"
             status_script_path = slurm_status.__file__
 
             # TODO: change this here, such each job can access resource from cluster-config!

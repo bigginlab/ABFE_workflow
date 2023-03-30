@@ -2,11 +2,10 @@ from abfe.scripts.preparation import system_builder as sb
 import os
 #Final Check Job
 out_approach_path = config["out_approach_path"]
-# ligand_basenames = config['ligand_basenames']
 input_protein_pdb_path = config['input_protein_pdb_path']
 input_membrane_pdb_path = config['input_membrane_pdb_path']
 input_ligand_mol_paths = config['input_ligand_mol_paths']
-ligand_names = config['ligand_basenames']
+ligand_names = config['ligand_names']
 input_cofactor_mol_path = config['input_cofactor_mol_path']
 hmr_factor = float(config['hmr_factor'])
 

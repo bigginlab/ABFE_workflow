@@ -54,8 +54,8 @@ def calculate_abfe(
     # Prepare Input / Parametrize
     os.chdir(conf["out_approach_path"])
 
-    conf["ligand_basenames"] = [os.path.basename(mol) for mol in conf["input_ligand_mol_paths"]]
-    conf["num_jobs"] = num_jobs_receptor_workflow if (num_jobs_receptor_workflow is not None) else len(conf["ligand_basenames"]) * num_replicas * 2
+    conf["ligand_names"] = [os.path.splitext(os.path.basename(mol))[0] for mol in conf["input_ligand_mol_paths"]]
+    conf["num_jobs"] = num_jobs_receptor_workflow if (num_jobs_receptor_workflow is not None) else len(conf["ligand_names"]) * num_replicas * 2
     conf["num_replica"] = num_replicas
 
     print("Prepare")
@@ -73,13 +73,11 @@ def calculate_abfe(
                        cluster_config=cluster_config)
 
     print("\tstarting preparing ABFE-Approach file structur: ", out_root_folder_path)
-    expected_out_paths = int(num_replicas) * len(conf["ligand_basenames"])
+    expected_out_paths = int(num_replicas) * len(conf["ligand_names"])
     result_paths = glob.glob(conf["out_approach_path"] + "/*/*/dG*csv")
 
     if (len(result_paths) != expected_out_paths):
         print("\tBuild approach struct")
-        # TODO is it right to set an empty dict the user input of cluster_config here
-        cluster_config = {}
         job_approach_file_path = build_approach_flow(approach_name=approach_name,
                                                      num_jobs=conf["num_jobs"],
                                                      conf=conf, submit=submit,
