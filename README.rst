@@ -71,8 +71,8 @@ Output:
                           Number of jobs in parallel for ligand workflow
     -ncl NUMBER_OF_CPUS_PER_LIGAND_JOB, --number_of_cpus_per_ligand_job NUMBER_OF_CPUS_PER_LIGAND_JOB
                           Number of cpus per ligand job
-    -sc SLRUM_CONFIG, --slrum_config SLRUM_CONFIG
-                          This is the configuration YAML file of your Slrum cluster. If nothing is provided: partition = cpu time=60:00:00 mem=5000
+    -sc SLURM_CONFIG, --slrum_config SLURM_CONFIG
+                          This is the configuration YAML file of your Slurm cluster. If nothing is provided: partition = cpu time=60:00:00 mem=5000
     -submit               Will automatically submit the ABFE calculations
     -v, --version         show program's version number and exit
 

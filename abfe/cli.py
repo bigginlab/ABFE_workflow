@@ -30,8 +30,8 @@ def abfe_run():
                         type=int)
     parser.add_argument('-njl', "--number_of_parallel_ligand_jobs", help='Number of jobs in parallel for ligand workflow', required=False, default=40, type=int)
     parser.add_argument('-ncl', "--number_of_cpus_per_ligand_job", help='Number of cpus per ligand job', required=False, default=8, type=int)
-    parser.add_argument('-sc', '--slrum_config',
-                        help="This is the configuration YAML file of your Slrum cluster. If nothing is provided:\n\n"\
+    parser.add_argument('-sc', '--slurm_config',
+                        help="This is the configuration YAML file of your Slurm cluster. If nothing is provided:\n\n"\
                         "   partition = cpu\n"\
                         "   time=60:00:00\n"\
                         "   mem=5000"

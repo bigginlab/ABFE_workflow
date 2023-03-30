@@ -12,6 +12,8 @@ If you do not have ``mamba`` installed, then:
 .. warning::
 
   You could try also with `conda <https://docs.conda.io/projects/conda/en/latest/user-guide/install/windows.html>`__ but it could take a while building the environment.
+  We observed that mamba build faster the environment; however, it could also take some time solving the dependencies. Please, be patient. If some error happens, then use the
+  `environment_pinned.yml <https://github.com/bigginlab/ABFE_workflow/blob/main/environment_pinned.yml>`__ instead.
 
 .. code-block:: bash
 
