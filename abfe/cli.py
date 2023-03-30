@@ -40,21 +40,23 @@ def abfe_run():
     parser.add_argument('-v', '--version', action='version', version=f"abfe: {__version__}")
 
     args = parser.parse_args()
-  
-    mol_paths = glob.glob(os.path.join(args.ligand_mol_dir,"*.mol"))
+    print(args)
+    mol_paths = glob.glob(os.path.join(args.ligand_mol_dir, "*.mol|*.sdf"))
     
+    default_cluster_config ={
+        "partition": "cpu",
+        "time": "60:00:00",
+        "mem": "5000",
+    }
+
     if args.slrum_config:
         with open(args.slrum_config, 'r') as c:
-            cluster_config =  yaml.safe_load(c)
+            cluster_config = default_cluster_config.update(yaml.safe_load(c))
     else:
-        cluster_config ={
-            "partition": "cpu",
-            "time": "60:00:00",
-            "mem": "5000",
-        }
+        cluster_config = default_cluster_config
     
     calculate_abfe(protein_pdb_path = args.protein_pdb_path,
-                   ligand_sdf_paths = mol_paths,
+                   ligand_mol_paths = mol_paths,
                    out_root_folder_path=args.output_dir_path,
                    cofactor_mol_path = args.cofactor_mol_path,
                    membrane_pdb_path = args.membrane_pdb_path,
