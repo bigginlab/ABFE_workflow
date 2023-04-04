@@ -24,5 +24,5 @@ calculate_abfe(
     num_jobs_receptor_workflow= None,
     num_jobs_per_ligand= 40,
     num_replicas = 3,
-    submit= False,
+    submit= True,
     cluster_config = {})

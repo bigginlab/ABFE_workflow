@@ -1,0 +1,18 @@
+define                  = -DPOSRES -DPOSRES_FC_BB=4000.0 -DPOSRES_FC_SC=2000.0 -DPOSRES_FC_LIPID=1000.0 -DPOSRES_LIG=4000.0
+integrator              = steep
+emtol                   = 1000.0
+nsteps                  = 5000
+nstlist                 = 10 
+cutoff-scheme           = Verlet
+rlist                   = 1.0
+vdwtype                 = Cut-off
+vdw-modifier            = Potential-shift-Verlet
+rvdw_switch             = 0
+rvdw                    = 1.0
+coulombtype             = pme
+rcoulomb                = 1.0
+epsilon-r               = 1
+epsilon-rf              = 1
+;
+constraints             = h-bonds
+constraint_algorithm    = LINCS

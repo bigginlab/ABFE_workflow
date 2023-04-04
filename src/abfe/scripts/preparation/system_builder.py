@@ -22,7 +22,7 @@ with warnings.catch_warnings():
     import BioSimSpace as bss
     
 
-from  parmed.gromacs import GromacsTopologyFile, GromacsGroFile
+from parmed.gromacs import GromacsTopologyFile, GromacsGroFile
 from parmed.structure import Structure
 from parmed.tools.actions import HMassRepartition
 # from pdbfixer import PDBFixer
@@ -363,7 +363,6 @@ class CRYST1:
     def __repr__(self):
         return self.string()
 
-# TODO create docs of the __init__ method
 class MakeInputs:
     def __init__(self,
             protein_pdb:PathLike = None,
@@ -441,8 +440,7 @@ class MakeInputs:
             safe_naming_prefix = safe_naming_prefix,
             out_dir = self.wd,
         )
-        # Actually you can pass to parameterize Chem.rdchem.Mol, *.inchi, *.smi, *.mol, *.mol2
-        # An .sdf file is usually the same as .mol
+        # Actually you can pass to parameterize Chem.rdchem.Mol, *.inchi, *.smi, *.mol, *.mol2, *.sdf
         parameterizer(input_mol = mol_file,mol_resi_name = name)
 
         top_file = os.path.join(self.wd, f"{name}.top")
@@ -512,7 +510,6 @@ class MakeInputs:
             os.chdir(self.wd)
             run(f"gmx pdb2gmx -f {pdb_file} -ff Slipids_2020 -water none -o {gro_out} -p {top_out} -i {posre_out}")
             os.chdir(cwd)
-
         else:
             fixed_pdb = os.path.join(self.wd,f"{name}_fixed.pdb")
             run(f"{env_prefix}/bin/pdbfixer {pdb_file} --output={fixed_pdb} --add-atoms=all --replace-nonstandard")
@@ -617,7 +614,6 @@ class MakeInputs:
         fix_topology(input_topology=os.path.join(system_dir,'solvated.top'), out_dir=system_dir)
         fix_topology(input_topology=os.path.join(ligand_dir,'solvated.top'), out_dir=ligand_dir)
         
-        # TODO Check what is done here
         # Construct ABFE system:
         print(f"\t* Final build of ABFE directory on: {self.out_dir}")
         make_abfe_dir(out_dir=self.out_dir, ligand_dir=ligand_dir, sys_dir=system_dir)
@@ -667,7 +663,7 @@ def __system_builder_cmd():
     parser.add_argument(
         '--builder_dir',
         help='Where all the building files. After completion you can safely remove calling the method clean, by default %(default)s',
-        dest = 'bu',
+        dest = 'builder_dir',
         default = 'abfe',
         type = str,
     )
