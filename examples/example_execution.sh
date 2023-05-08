@@ -3,8 +3,8 @@
 
 conda activate abfe
 
-ABFE_Calculator -p ./CyclophilinD_data/input/receptor.pdb \
-                    -l ./CyclophilinD_data/input/ligands \
-                    -o ./CyclophilinD_data/abfe \
-                    -nr 3 \
-                    -submit
+ABFE_CLI -p ./CyclophilinD_data/minimal_input/receptor_protein.pdb \
+          -l ./CyclophilinD_data/minimal_input/ligands \
+          -o ./CyclophilinD_data/minimal_input/abfe \
+          -nr 3 \
+          -submit
