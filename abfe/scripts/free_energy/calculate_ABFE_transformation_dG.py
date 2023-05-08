@@ -13,7 +13,7 @@ from abfe.scripts.free_energy.alchemlyb_analysis import analyze_ligand
 def calculate_transformation_dG(conf_path: str, xvg_path: str,
                                 system_name: str,
                                 boresch_data: str, out_path: str,
-                                min_samples: int = 200, lower_bound_ndatapoints: int = 1000, ):
+                                min_samples: int = 200, lower_bound_ndatapoints: int = 100, ):
     conf = json.load(open(conf_path, "r"))
 
     if (system_name == "complex"):
@@ -51,7 +51,7 @@ def calculate_transformation_dG(conf_path: str, xvg_path: str,
                 col.append(res_V)
         res_df['boresch'] = col
 
-    res_df.to_csv(out_path + "/dg_results.csv")
+    res_df.to_csv(out_path + "/dg_results.tsv")
     return out_path
 
 

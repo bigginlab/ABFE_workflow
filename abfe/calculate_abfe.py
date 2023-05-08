@@ -10,7 +10,7 @@ from abfe.scripts import final_receptor_results
 def calculate_abfe(protein_pdb_path: str, ligand_sdf_paths: List[str], out_root_folder_path: str,
                    approach_name: str = "", cofactor_sdf_path: str = None,
                    n_cores_per_job: int = 8, num_jobs_receptor_workflow: int = None, num_jobs_per_ligand: int = 40, num_replicas: int = 3,
-                   submit: bool = False, cluster_config: dict = {}):
+                   submit: bool = False, use_gpu: bool = True, hybrid_job: bool = True, cluster_config: dict = {}):
     orig_dir = os.getcwd()
     conf = {}
 
@@ -37,6 +37,8 @@ def calculate_abfe(protein_pdb_path: str, ligand_sdf_paths: List[str], out_root_
     conf["ligand_names"] = [os.path.splitext(os.path.basename(sdf))[0] for sdf in conf["input_ligands_sdf_path"]]
     conf["num_jobs"] = num_jobs_receptor_workflow if (num_jobs_receptor_workflow is not None) else len(conf["ligand_names"]) * num_replicas * 2
     conf["num_replica"] = num_replicas
+    conf['build_system'] = True
+
 
     print("Prepare")
     print("\tstarting preparing ABFE-ligand file structur")
@@ -46,11 +48,12 @@ def calculate_abfe(protein_pdb_path: str, ligand_sdf_paths: List[str], out_root_
                        out_root_path=conf["out_approach_path"],
                        num_max_thread=n_cores_per_job,
                        num_replicas=num_replicas, num_jobs=num_jobs_per_ligand,
-                       cluster_config=cluster_config)
+                       cluster_config=cluster_config,
+                       use_gpu=use_gpu, hybrid_job=hybrid_job)
 
     print("\tstarting preparing ABFE-Approach file structur: ", out_root_folder_path)
     expected_out_paths = int(num_replicas) * len(conf["ligand_names"])
-    result_paths = glob.glob(conf["out_approach_path"] + "/*/*/dG*csv")
+    result_paths = glob.glob(conf["out_approach_path"] + "/*/*/dG*tsv")
 
     if (len(result_paths) != expected_out_paths):
         print("\tBuild approach struct")

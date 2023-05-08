@@ -27,7 +27,7 @@ def get_fep_res() -> str:
         "include: \'" + fep_snake + "\'",
         "rule all:",
         "    input:",
-        "        dG_path=run_path+\"/dG_results.csv\"",
+        "        dG_path=run_path+\"/dG_results.tsv\"",
         ""
     ]
     return "\n".join(cmd)
@@ -45,33 +45,38 @@ def get_all_eq_fep_res() -> str:
         "## Do Check all results",
         "rule abfe_ligand_result:",
         "    input:",
-        "        dG_path=run_path+\"/dG_results.csv\"",
+        "        dG_path=run_path+\"/dG_results.tsv\"",
         ""
     ]
     return "\n".join(cmd)
 
 
-def get_superFlow() -> str:
+def get_superFlow(gmx:bool=False) -> str:
+    if(gmx):
+        snake_base = rules.receptor_gmx_workflow_path
+    else:
+        snake_base = rules.receptor_workflow_path
+
     cmd = [
         "#DO",
         "## Do Equilibration",
-        "include: \'" + rules.receptor_workflow_path + "\'",
+        "include: \'" + snake_base + "\'",
         "",
         "## Do Check all results",
         "rule abfe_recptor_result:",
         "    input:",
-        "        dG_path=approach_path+\"/abfe_results.csv\"",
+        "        dG_path=approach_path+\"/abfe_results.tsv\"",
         ""
     ]
     return "\n".join(cmd)
 
 
 def generate_approach_snake_file(out_file_path: str,
-                                 conf_file_path: str):
+                                 conf_file_path: str, gmx:bool=False):
     load_conf_file = "configfile: " \
                      "\'" + conf_file_path + "\'\napproach_path =config['out_approach_path']\n"
 
-    full_job = get_superFlow()
+    full_job = get_superFlow(gmx)
 
     file_str = "\n".join(["#Load Config:", load_conf_file, full_job])
 

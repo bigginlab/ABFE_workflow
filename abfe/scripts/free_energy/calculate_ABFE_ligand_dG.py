@@ -12,9 +12,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--in_lig_path', default='./',
-                        help='results from ligand.csv')
+                        help='results from ligand.tsv')
     parser.add_argument('--in_comp_path', default='',
-                        help='results from complex.csv')
+                        help='results from complex.tsv')
     parser.add_argument('--out_csv_path', default='./',
                         help='output path for writing files')
     args = parser.parse_args()
@@ -49,7 +49,6 @@ if __name__ == "__main__":
         v.update({"step": k})
         collapse.append(v)
 
-    collapse
     collapse.append({"step": "ABFE", "sys": "ABFE", "windows": "-", "MBAR": dG_totComp_MBAR - dG_totLig_MBAR, "TI": dG_totComp_TI - dG_totLig_TI, })
 
     # convert to pandas df.
