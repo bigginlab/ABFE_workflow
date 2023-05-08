@@ -1,7 +1,5 @@
 # ABFE_workflow
-**WARNING**: **The repo is currently under development - Test systems do not work, code might be instabil :)**
-
-**WARNING The repo is currently under heavy development!**
+**WARNING**: **The repo is currently under development - No Guarantees at the moment. But will be soon at a first version. :)**
 
 A snakemake based workflow for ABFE calculations using GMX. The workflow can be scaled on Slurm Queuing systems.
 The here provided Cyclophilin D Test systems and experimental values originate from:
@@ -18,7 +16,7 @@ Here a visualization of the triggered process:
 ## New Features:
 We are currently improving the user experience. The input was simplified to simply only the need of providing a pdb file for the receptor and .sdf files for the ligand.
 
-```
+```bash
 >ABFE_CLI -h
 
 usage: ABFE_CLI [-h] -p PROTEIN_PDB_PATH -l LIGAND_SDF_DIR -o OUTPUT_DIR_PATH [-c COFACTOR_SDF_PATH] [-nc NUMBER_OF_CPUS_PER_JOB] [-nj NUMBER_OF_PARALLEL_JOBS] [-nr NUMBER_OF_REPLICATES] [-submit]
@@ -56,7 +54,8 @@ Additional script information is provided via:
 
   ABFE_CLI -h
   # or
-  ABFE_GMX_CLI -h```
+  ABFE_GMX_CLI -h
+```
 
 Running an ABFE Campaign from Bash:
 ```bash
