@@ -9,11 +9,11 @@ from abfe import calculate_abfe
 
 root_path  = os.path.dirname(__file__)+"/CyclophilinD_data"
 
-in_root_path = root_path+"/input"
+in_root_path = root_path+"/minimal_input"
 ligand_sdfs = glob.glob(in_root_path+"/ligands/*sdf")
 receptor_pdb = in_root_path+"/receptor.pdb"
 
-out_folder = root_path+"/abfe"
+out_folder = in_root_path+"/abfe"
 
 calculate_abfe(protein_pdb_path=receptor_pdb, 
                ligand_sdf_paths=ligand_sdfs,

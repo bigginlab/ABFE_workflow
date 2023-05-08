@@ -18,4 +18,4 @@ run_path = config["run_path"]
 
 rule fep_results:
     input:
-        dG_path=run_path+"/dG_results.csv",
+        dG_path=run_path+"/dG_results.tsv",

@@ -9,3 +9,4 @@ ligand_equilibration_gpu_workflow_path = root_path + "/ligand_equilibration_work
 ligand_fep_gpu_workflow_path = root_path + "/ligand_fep_workflow/Snakefile_GPU"
 
 receptor_workflow_path = root_path + "/receptor_workflow/Snakefile"
+receptor_gmx_workflow_path = root_path + "/receptor_workflow/Snakefile_gmx"

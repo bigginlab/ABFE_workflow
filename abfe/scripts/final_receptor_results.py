@@ -7,7 +7,7 @@ import pandas as pd
 
 # Load all individual results:
 def get_all_subresults(in_root_dir: str):
-    files = glob.glob(in_root_dir + "/*/*/dG_results.csv")
+    files = glob.glob(in_root_dir + "/*/*/dG_results.tsv")
 
     dfs = []
     for f in files:
@@ -50,8 +50,8 @@ def get_final_results(in_root_dir: str, out_dir: str):
     df_app = pd.concat(dfs, ignore_index=True)
     df_final = extract_final_results(df_app=df_app)
 
-    out_df_final_results = out_dir + "/abfe_results.csv"
-    out_df_single_detailed_results = out_dir + "/abfe_single_detailed_results.csv"
+    out_df_final_results = out_dir + "/abfe_results.tsv"
+    out_df_single_detailed_results = out_dir + "/abfe_single_detailed_results.tsv"
 
     df_final.to_csv(out_df_final_results, sep="\t", na_rep="-")
     df_app.to_csv(out_df_single_detailed_results, sep="\t", na_rep="-")

@@ -24,6 +24,7 @@ rule fep_run_ligand_emin:
     retries: num_retries
     shell:
         '''
+            set -e
             cd {params.run_dir}
             cp {params.gmx_template} ./job_emin.sh   
             ./job_emin.sh {params.nthreads} emin {input.top} {input.gro}
@@ -45,6 +46,7 @@ rule fep_run_ligand_nvt_heat:
     retries: num_retries
     shell:
         '''
+            set -e
             cd {params.run_dir}
             cp {params.gmx_template} ./job_nvt.sh   
             ./job_nvt.sh {params.nthreads} nvt {input.top} {input.gro}
@@ -67,6 +69,7 @@ rule fep_run_ligand_npt_eq1:
     retries: num_retries
     shell:
         '''
+            set -e
             cd {params.run_dir}
             cp {params.gmx_template} ./job_npt.sh   
             ./job_npt.sh {params.nthreads} npt {input.top} {input.gro} {input.cpt}
@@ -89,6 +92,7 @@ rule fep_run_ligand_npt_eq2:
     retries: num_retries
     shell:
         '''
+            set -e
             cd {params.run_dir}
             cp {params.gmx_template} ./job_npt_norest.sh   
             ./job_npt_norest.sh {params.nthreads} npt-norest {input.top} {input.gro} {input.cpt}
@@ -111,6 +115,7 @@ rule fep_run_ligand_prod:
     retries: num_retries
     shell:
         '''
+            set -e
             cd {params.run_dir}
             cp {params.gmx_template} ./job_prod.sh   
             ./job_prod.sh {params.nthreads} prod {input.top} {input.gro} {input.cpt}

@@ -1,0 +1,66 @@
+[build-system]
+requires=[
+	"setuptools>=61.0",
+	"versioningit",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ABFE_Workflow"
+dynamic = ["version"]
+authors=[
+    {name="Benjamin Ries", email="benjamin.ries@boehringer-ingelheim.com"},
+    {name="Irfan Alibay"},
+    {name="Aniket Magarkar", email="aniket.magarkar@boehringer-ingelheim.com"},
+    {name="Philip Biggins", email="philip.biggin@bioch.ox.ac.uk"},
+]
+dependencies = [
+  'snakemake',
+  'tabulate',
+  'pymbar',
+  'alchemlyb',
+  'MDRestraintsGenerator',
+  'gromacs=2022.2',
+  'scipy',
+  'numpy',
+  'pandas',
+  'matplotlib',
+  'mdanalysis',
+  'parmed',
+  'arparse'
+]
+
+description="ABFE Workflow is a pipeline variant of our prior work."
+readme="README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/bigginlab/ABFE_workflow"
+
+[tool.setuptools]
+py-modules = ["abfe", "abfe_cli"]
+
+[tool.versioningit]
+default-version = "1+unknown"
+
+[tool.versioningit.format]
+distance = "{base_version}+{distance}.{vcs}{rev}"
+dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
+distance-dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
+
+[tool.versioningit.vcs]
+method = "git"
+match = ["*"]
+default-tag = "0.0.0"
+
+[project.scripts]
+ABFE_CLI = "abfe.ABFECalculator:main"
+ABFE_GMX_CLI = "abfe.ABFECalculatorGmx:main"
+
+[tool.versioningit.write]
+file = "abfe/_version.py"

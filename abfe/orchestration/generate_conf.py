@@ -12,7 +12,9 @@ def generate_approach_conf(out_path: str,
                            input_cofactor_sdf_path: str,
                            out_approach_path: str,
                            ligand_names: List[str],
-                           num_replica: int
+                           num_replica: int,
+                           python_bin:str,
+                           build_system:bool
                            ):
     ## Ugly implementation every defined variable is added to conf! :)
     conf_settings = {k: v for k, v in locals().items() if not k.startswith("__")}
