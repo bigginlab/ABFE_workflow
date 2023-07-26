@@ -17,7 +17,7 @@ Here a visualization of the triggered process:
 We are currently improving the user experience. The input was simplified to simply only the need of providing a pdb file for the receptor and .sdf files for the ligand.
 
 ```bash
->ABFE_CLI -h
+>cli-abfe -h
 
 usage: ABFE_CLI [-h] -p PROTEIN_PDB_PATH -l LIGAND_SDF_DIR -o OUTPUT_DIR_PATH [-c COFACTOR_SDF_PATH] [-nc NUMBER_OF_CPUS_PER_JOB] [-nj NUMBER_OF_PARALLEL_JOBS] [-nr NUMBER_OF_REPLICATES] [-submit]
                        [-gpu] [-hybrid]
@@ -38,7 +38,7 @@ optional arguments:
                         Number of jobs in parallel
   -nr NUMBER_OF_REPLICATES, --number_of_replicates NUMBER_OF_REPLICATES
                         Number of replicates
-  -submit               Will automatically submit the ABFE calculations
+  -nosubmit             Will not automatically submit the ABFE calculations
   -nogpu                don't use gpus for the submissions?
   -nohybrid             don't do hybrid execution (complex jobs on gpu and ligand jobs on cpu (requires gpu flag))
 ```
@@ -52,18 +52,18 @@ Additional script information is provided via:
 ```bash
   conda activate abfe
 
-  ABFE_CLI -h
+  cli-abfe -h
   # or
-  ABFE_GMX_CLI -h
+  cli-abfe-gmx -h
 ```
 
 Running an ABFE Campaign from Bash:
 ```bash
   conda activate abfe
-  ABFE_CLI -p <path>/receptor.pdb \
+  cli-abfe -p <path>/receptor.pdb \
            -l <path>/myligands \
            -o <path>/Out  \
-           -nogpu -nohybrid -submit -nc 8
+           -nogpu -nohybrid -nc 8
 ```
 
 ### Input
