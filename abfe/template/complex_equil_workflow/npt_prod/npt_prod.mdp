@@ -12,7 +12,7 @@ title        = NPT-production
 ;----------------------------------------------------
 integrator   = sd            ; Langevin integrator
 ld-seed      = -1            ; Langevin seed [-1]
-nsteps       = 2500000       ; 4 * 2,500,000 fs = 10 ns
+nsteps       = 2500000       ; 4 * 2,500,000 fs = 1 ns
 dt           = 0.004         ; 4 fs
 pbc          = xyz           ; Periodic boundary conditions
 comm-mode    = Linear        ; remove center of mass translation

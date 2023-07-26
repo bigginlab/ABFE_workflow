@@ -9,7 +9,7 @@ n_vdw_windows = len(lam_vdw_range)
 
 rule fep_setup_ligand:
     input:
-        ligand_top=run_path+"/ligand/topology",
+        ligand_top=directory(run_path+"/ligand/topology"),
         equil_gro=run_path+"/ligand/equil-mdsim/npt_equil2/npt_equil2.gro",
     params:
         sim_dir=run_path+"/ligand/fep",

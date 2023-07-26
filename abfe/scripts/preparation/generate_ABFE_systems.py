@@ -8,7 +8,7 @@ import sys
 
 import BioSimSpace as bss
 
-from abfe.scripts.preparation.parametrize import gen_openff
+from abfe.scripts.preparation.parametrize import gen_ffparams
 from abfe.scripts.preparation.topology_fixer import fix_topology
 
 
@@ -18,14 +18,16 @@ from abfe.scripts.preparation.topology_fixer import fix_topology
 #########################################################################################33
 def solvate(md_system, outdir: str):
     print("Solvating the system in: ", outdir)
-    box_min, box_max = md_system.getAxisAlignedBoundingBox()
-    box_size = [y - x for x, y in zip(box_min, box_max)]
-    padding = 15 * bss.Units.Length.angstrom
 
-    box_length = (max(box_size) + 1.5 * padding)
-    box, angles = bss.Box.truncatedOctahedron(box_length.value() * bss.Units.Length.angstrom)
+    padding = 12 * bss.Units.Length.angstrom
 
-    solvated = bss.Solvent.tip3p(md_system, box=box, angles=angles)
+    #box_min, box_max = md_system.getAxisAlignedBoundingBox()
+    #base_length = max(2 * molecule._getAABox().halfExtents())
+    #box_size = [y - x for x, y in zip(box_min, box_max)]
+    #box_length = (max(box_size) + padding)
+    #box, angles = bss.Box.truncatedOctahedron(box_length.value() * bss.Units.Length.angstrom)
+
+    solvated = bss.Solvent.tip3p(md_system, shell=padding) #box=box, angles=angles)
     out_solv = outdir + "/solvated"
     bss.IO.saveMolecules(out_solv, solvated, ["GroTop", "Gro87"])
 
@@ -46,7 +48,7 @@ def prepare_md_system(protein="", ligand="", cofactor=""):
     return md_system
 
 
-def process_ligand(ligand, out_dir: str, name="LIG", hmr: bool = True):
+def process_ligand(ligand, out_dir: str, name="LIG", hmr: bool = True, ff="openff"):
     print("proc")
     print(ligand)
     # Add a line to convert molecule to sdf by babel for safe processing
@@ -58,11 +60,12 @@ def process_ligand(ligand, out_dir: str, name="LIG", hmr: bool = True):
         ligand_filename = ligand
 
     if not os.path.isfile(os.path.join(ligand_filename, "for_gromacs", "MOL.top")):
-        gen_openff(input_molecule=ligand, output_dir=out_dir, input_molecule_name=name, hmr=hmr)
+        gen_ffparams(input_molecule=ligand, output_dir=out_dir, input_molecule_name=name, hmr=hmr, ff=ff)
     top_file = os.path.join(out_dir, "for_gromacs", "MOL.top")
     gro_file = os.path.join(out_dir, "for_gromacs", "MOL.gro")
 
     sys_ligand = bss.IO.readMolecules([top_file, gro_file])
+
     return sys_ligand, out_dir + "/for_gromacs/MOL"
 
 
@@ -120,7 +123,7 @@ def clean_up(ligand="", cofactor=""):
         subprocess.getoutput(f"rm -fr {cofactor_name}")
 
 
-def prepare_input_files(protein_pdb: str, ligand_sdf: str, cofactor_sdf: str, out_dir: str):
+def prepare_input_files(protein_pdb: str, ligand_sdf: str, cofactor_sdf: str, out_dir: str, ff:str ="openff"):
     work_dir = out_dir + "/tmp"
 
     if (not os.path.exists(work_dir)):
@@ -128,12 +131,12 @@ def prepare_input_files(protein_pdb: str, ligand_sdf: str, cofactor_sdf: str, ou
 
     if ligand_sdf:
         print("Processing Ligand")
-        sys_ligand, lig_file = process_ligand(ligand_sdf, out_dir=work_dir + "/ligand", name="LIG")
+        sys_ligand, lig_file = process_ligand(ligand_sdf, out_dir=work_dir + "/ligand", name="LIG", ff=ff)
     else:
         sys_ligand = ""
     if cofactor_sdf:
         print("Processing Cofactor")
-        sys_cofactor, _ = process_ligand(cofactor_sdf, out_dir=work_dir + "/cof", name="COF")
+        sys_cofactor, _ = process_ligand(cofactor_sdf, out_dir=work_dir + "/cof", name="COF", ff=ff)
     else:
         sys_cofactor = ""
     if protein_pdb:
@@ -167,9 +170,11 @@ if __name__ == "__main__":
     parser.add_argument('-l', "--ligand_sdf_dir", help='Input ligand file', required=True)
     parser.add_argument('-c', "--cofactor_sdf_path", help='Input cofactor file', required=False, default=None)
     parser.add_argument('-o', "--output_dir_path", help='Output directory', required=False, default=".")
+    parser.add_argument('-ff', "--smallmol_ff", help='Force Field small molecule parametrization', required=False, default="openff")
+
     args = parser.parse_args()
 
     print("Input: ", args.protein_pdb_path, args.ligand_sdf_dir, args.cofactor_sdf_path, args.output_dir_path)
 
     prepare_input_files(protein_pdb=args.protein_pdb_path, ligand_sdf=args.ligand_sdf_dir, cofactor_sdf=ast.literal_eval(args.cofactor_sdf_path),
-                        out_dir=args.output_dir_path)
+                        out_dir=args.output_dir_path, ff=args.smallmol_ff)
