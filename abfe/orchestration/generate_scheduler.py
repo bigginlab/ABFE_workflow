@@ -53,7 +53,7 @@ class scheduler():
 
     def generate_job_file(self, out_prefix, cluster_conf_path: str = None, cluster_config: dict = None, cluster=False,
                           num_jobs: int = 1, latency_wait: int = 460, snake_job=""):
-        if (cluster and cluster_conf_path is not None):
+        if (cluster and cluster_config is not None and cluster_conf_path is not None):
             root_dir = os.path.dirname(cluster_conf_path)
             slurm_logs = os.path.dirname(cluster_conf_path) + "/slurm_logs"
             if (not os.path.exists(slurm_logs)): os.mkdir(slurm_logs)
@@ -98,8 +98,8 @@ class scheduler():
                             "--cluster-config " + cluster_conf_path + " "
                              "--cluster-status " + status_script_path + " "
                              "--cluster-cancel \"scancel\" "
-                             "--jobs " + str(num_jobs) + " --latency-wait " + str(latency_wait) + " --rerun-incomplete " + snake_job +" 1>  "+name+".out "
-                                                                                                                                                   "2>"+name+".err"
+                             "--jobs " + str(num_jobs) + " --latency-wait " + str(latency_wait) + " --rerun-incomplete " + snake_job +" 1>  "+ str(out_prefix)+".out "
+                                                                                                                                                   "2>"+ str(out_prefix)+".err"
             ])
         elif (cluster):
             raise ValueError("give cluster conf! ")

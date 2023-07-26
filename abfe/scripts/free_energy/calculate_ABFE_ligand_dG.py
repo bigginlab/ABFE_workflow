@@ -49,6 +49,7 @@ if __name__ == "__main__":
         v.update({"step": k})
         collapse.append(v)
 
+
     collapse.append({"step": "ABFE", "sys": "ABFE", "windows": "-", "MBAR": dG_totComp_MBAR - dG_totLig_MBAR, "TI": dG_totComp_TI - dG_totLig_TI, })
 
     # convert to pandas df.

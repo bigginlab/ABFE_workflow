@@ -14,7 +14,8 @@ def generate_approach_conf(out_path: str,
                            ligand_names: List[str],
                            num_replica: int,
                            python_bin:str,
-                           build_system:bool
+                           build_system:bool,
+                           small_mol_ff:str
                            ):
     ## Ugly implementation every defined variable is added to conf! :)
     conf_settings = {k: v for k, v in locals().items() if not k.startswith("__")}

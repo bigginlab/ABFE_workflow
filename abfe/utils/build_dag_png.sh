@@ -1,1 +1,1 @@
-snakemake --dag | dot -Tpng -o dag.png
+  snakemake --dag | dot -Tpng -o dag.png

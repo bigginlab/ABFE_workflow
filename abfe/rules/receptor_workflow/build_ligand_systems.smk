@@ -8,6 +8,8 @@ input_protein_pdb = config['input_protein_pdb_path']
 input_ligand_sdfs = config['input_ligands_sdf_path']
 input_cofactor_sdf = config['input_cofactor_sdf_path']
 
+small_mol_ff =  config['small_mol_ff']
+print(input_ligand_sdfs)
 
 rule gather_files:
     input:
@@ -16,7 +18,6 @@ rule gather_files:
         out_dir = approach_path+"/orig_input"
     output:
         out_files = expand(approach_path+"/orig_input/{ligand_name}.sdf", ligand_name=ligand_names)
-
     shell:
         """
             mkdir {params.out_dir} -p
@@ -36,15 +37,16 @@ rule build_ligand_system:
         output_dir= approach_path+"/{ligand_name}/input"
     params:
         cofactor_sdf= str(input_cofactor_sdf),
+        ff=small_mol_ff,
         script_dir = scripts.root_path
     output:
         out_ligand_gro=approach_path+"/{ligand_name}/input/ligand/ligand.gro",
         out_ligand_top=approach_path+"/{ligand_name}/input/ligand/ligand.top",
         out_complex_gro=approach_path+"/{ligand_name}/input/complex/complex.gro",
-        out_complex_top=approach_path+"/{ligand_name}/input/complex/complex.top"
+        out_complex_top=approach_path+"/{ligand_name}/input/complex/complex.top",
     shell:
         """
             python {params.script_dir}/preparation/generate_ABFE_systems.py --ligand_sdf_dir {input.ligand_sdf} \
             --protein_pdb_path {input.protein_pdb} \
-            --cofactor_sdf_path {params.cofactor_sdf} --output_dir_path {input.output_dir}
+            --cofactor_sdf_path {params.cofactor_sdf} --output_dir_path {input.output_dir} -ff {params.ff}
         """

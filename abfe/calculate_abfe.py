@@ -9,7 +9,7 @@ from abfe.scripts import final_receptor_results
 
 def calculate_abfe(protein_pdb_path: str, ligand_sdf_paths: List[str], out_root_folder_path: str,
                    approach_name: str = "", cofactor_sdf_path: str = None,
-                   n_cores_per_job: int = 8, num_jobs_receptor_workflow: int = None, num_jobs_per_ligand: int = 40, num_replicas: int = 3,
+                   n_cores_per_job: int = 8, num_jobs_receptor_workflow: int = None, num_jobs_per_ligand: int = 40, num_replicas: int = 3, small_mol_ff="openff",
                    submit: bool = False, use_gpu: bool = True, hybrid_job: bool = True, cluster_config: dict = {}):
     orig_dir = os.getcwd()
     conf = {}
@@ -38,7 +38,7 @@ def calculate_abfe(protein_pdb_path: str, ligand_sdf_paths: List[str], out_root_
     conf["num_jobs"] = num_jobs_receptor_workflow if (num_jobs_receptor_workflow is not None) else len(conf["ligand_names"]) * num_replicas * 2
     conf["num_replica"] = num_replicas
     conf['build_system'] = True
-
+    conf["small_mol_ff"] = small_mol_ff
 
     print("Prepare")
     print("\tstarting preparing ABFE-ligand file structur")
@@ -55,6 +55,7 @@ def calculate_abfe(protein_pdb_path: str, ligand_sdf_paths: List[str], out_root_
     expected_out_paths = int(num_replicas) * len(conf["ligand_names"])
     result_paths = glob.glob(conf["out_approach_path"] + "/*/*/dG*tsv")
 
+    job_approach_file_path= None
     if (len(result_paths) != expected_out_paths):
         print("\tBuild approach struct")
         cluster_config = {}

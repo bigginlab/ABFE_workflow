@@ -16,20 +16,15 @@ authors=[
 ]
 dependencies = [
   'snakemake',
-  'tabulate',
   'pymbar',
   'alchemlyb',
-  'MDRestraintsGenerator',
-  'gromacs=2022.2',
+  'gromacs',
   'scipy',
   'numpy',
   'pandas',
   'matplotlib',
-  'mdanalysis',
-  'parmed',
-  'arparse'
+  'argparse'
 ]
-
 description="ABFE Workflow is a pipeline variant of our prior work."
 readme="README.md"
 requires-python = ">=3.9"
@@ -59,8 +54,8 @@ match = ["*"]
 default-tag = "0.0.0"
 
 [project.scripts]
-ABFE_CLI = "abfe.ABFECalculator:main"
-ABFE_GMX_CLI = "abfe.ABFECalculatorGmx:main"
+cli-abfe = "abfe_cli.ABFECalculator:main"
+cli-abfe-gmx = "abfe_cli.ABFECalculatorGmx:main"
 
 [tool.versioningit.write]
 file = "abfe/_version.py"

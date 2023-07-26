@@ -147,7 +147,7 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                    code_path=code_path
                                                    )
 
-            job_file_path = scheduler.generate_job_file(cluster=True, cluster_config=cluster_config,
+            job_file_path = scheduler.generate_job_file(cluster=cluster_config is not None, cluster_config=cluster_config,
                                                         cluster_conf_path=out_replica_path + "/cluster_conf.json",
                                                         out_prefix=ligand_rep_name, num_jobs=num_jobs)
             scheduler.out_job_path = [job_file_path]
