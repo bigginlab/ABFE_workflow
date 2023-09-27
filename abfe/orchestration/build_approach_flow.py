@@ -29,6 +29,7 @@ def build_approach_flow(approach_name: str, num_jobs: int, conf: dict, cluster_c
                                              num_replica=conf['num_replica'],
                                              python_bin=os.environ["CONDA_PREFIX"] + "/bin/python",
                                              build_system=conf["build_system"],
+                                             small_mol_ff = conf["small_mol_ff"],
                                              )
 
     generate_snake.generate_approach_snake_file(out_file_path=snake_path,
