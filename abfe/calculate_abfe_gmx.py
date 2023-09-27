@@ -21,6 +21,7 @@ def calculate_abfe_gmx(input_dir:str, out_root_folder_path: str, approach_name: 
     conf["input_path"] = os.path.abspath(input_dir)
     conf['build_system'] = False
     conf["out_approach_path"] = os.path.abspath(out_root_folder_path)
+    conf["small_mol_ff"] = "custom"
 
     ## Generate output folders
     for dir_path in [conf["out_approach_path"]]:
