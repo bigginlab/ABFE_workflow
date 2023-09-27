@@ -34,7 +34,7 @@ def main():
 
     sdf_paths = glob.glob(args.ligand_sdf_dir + "/*.sdf")
 
-    if(args.submit):
+    if(args.nosubmit):
         if (not bool(args.nogpu)):
             cluster_config = {
                 "partition": "gpu",
