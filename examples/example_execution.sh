@@ -5,7 +5,7 @@ conda activate abfe
 
 cli-abfe -p ./CyclophilinD_data/minimal_input/receptor_protein.pdb \
          -l ./CyclophilinD_data/minimal_input/ligands \
-	       -o /scratch/riesbenj/ABFE/CyclophilinD_selfParametrized \
+	       -o ./abfe_out \
 	       -pn CyclophilinD_selfParametrized \
          -nr 3 \
          -njr 8 \
