@@ -6,6 +6,4 @@ conda activate abfe
 cli-abfe-gmx -d  ./CyclophilinD_data/gromacs_in \
                     -o ./abfe_gmx \
                     -pn CyclophilinD_gmx \
-                    -nr 3 \
-                    -njr 8 \
-                    -njl 40 
+                    -nr 3
