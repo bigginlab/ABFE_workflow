@@ -51,7 +51,7 @@ def main():
                    n_cores_per_job=args.number_of_cpus_per_ligand_job, num_jobs_per_ligand=args.number_of_parallel_ligand_jobs,
                    num_jobs_receptor_workflow=args.number_of_parallel_receptor_jobs,
                    num_replicas=args.number_of_replicates,
-                   nosubmit=args.submit, use_gpu=not bool(args.nogpu), hybrid_job=not bool(args.nohybrid),
+                   nosubmit=args.nosubmit, use_gpu=not bool(args.nogpu), hybrid_job=not bool(args.nohybrid),
                    cluster_config=cluster_config)
 
     return res
