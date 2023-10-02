@@ -9,5 +9,4 @@ cli-abfe -p ./CyclophilinD_data/minimal_input/receptor_protein.pdb \
 	       -pn CyclophilinD_selfParametrized \
          -nr 3 \
          -njr 8 \
-         -njl 40 \
-         -submit
+         -njl 40
