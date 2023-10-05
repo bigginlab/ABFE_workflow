@@ -3,7 +3,7 @@ import os
 import stat
 import subprocess
 
-from abfe.orchestration import slurm_status
+from abfe.scripts import abfe_slurm_status
 
 
 class scheduler():
@@ -52,7 +52,11 @@ class scheduler():
         return self.out_scheduler_path
 
     def generate_job_file(self, out_prefix, cluster_conf_path: str = None, cluster_config: dict = None, cluster=False,
-                          num_jobs: int = 1, latency_wait: int = 460, snake_job=""):
+                          num_jobs: int = 1, latency_wait: int = 460, snake_file_path=None, snake_job=""):
+
+        if (snake_file_path is not None):
+            snake_job = " -s "+snake_file_path+" " + snake_job
+
         if (cluster and cluster_config is not None and cluster_conf_path is not None):
             root_dir = os.path.dirname(cluster_conf_path)
             slurm_logs = os.path.dirname(cluster_conf_path) + "/slurm_logs"
@@ -89,7 +93,7 @@ class scheduler():
 
             json.dump(cluster_config, open(cluster_conf_path, "w"), indent="  ")
             cluster_options = " ".join(["--" + key + "=" + str(val) + " " for key, val in cluster_config.items()]) + " --parsable"
-            status_script_path = slurm_status.__file__
+            status_script_path = os.path.basename(abfe_slurm_status.__file__.replace(".py", ""))
 
             # TODO: change this here, such each job can access resource from cluster-config!
             file_str = "\n".join([
@@ -99,7 +103,7 @@ class scheduler():
                              "--cluster-status " + status_script_path + " "
                              "--cluster-cancel \"scancel\" "
                              "--jobs " + str(num_jobs) + " --latency-wait " + str(latency_wait) + " "
-                             "--rerun-incomplete -s Snakefile.smk" + snake_job +" 1>  "+ str(out_prefix)+".out "
+                             "--rerun-incomplete " + snake_job +" 1>  "+ str(out_prefix)+".out "
                                                                                                                                                    "2>"+ str(out_prefix)+".err"
             ])
         elif (cluster):
@@ -108,7 +112,7 @@ class scheduler():
             file_str = "\n".join([
                 "#!/bin/env bash",
                 "snakemake -c " + str(self.n_cores) + " -j "+str(num_jobs)+" --latency-wait " + str(
-                    latency_wait) + " --rerun-incomplete -s Snakefile.smk" + snake_job
+                    latency_wait) + " --rerun-incomplete " + snake_job
             ])
 
         file_io = open(self.out_job_path, "w")
