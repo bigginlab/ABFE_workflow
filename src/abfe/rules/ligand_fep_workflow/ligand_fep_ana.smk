@@ -48,4 +48,7 @@ rule fep_ana_get_dg_ligand:
     output:
         complex_var=run_path+"/ligand/fep/ana/dg_results.tsv"
     shell:
-        "python {params.script_dir}/free_energy/calculate_ABFE_transformation_dG.py --xvg_path {input.xvg_dir} --conf_path {params.conf_path} --out_path {params.out_dir} --system_name ligand"
+        '''
+                set -e
+                python {params.script_dir}/free_energy/calculate_ABFE_transformation_dG.py --xvg_path {input.xvg_dir} --conf_path {params.conf_path} --out_path {params.out_dir} --system_name ligand
+        '''

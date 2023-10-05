@@ -6,6 +6,7 @@ import abfe
 from abfe import template
 from abfe.orchestration import generate_conf, generate_snake, generate_scheduler
 
+from abfe.conf import std_conf
 
 def build_input(input_ligand_path: str,
                 input_protein_path: str,
@@ -72,6 +73,8 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                input_data_path=input_ligand_path,
                                                num_replica=num_replica,
                                                code_path=code_path,
+                                               gmx_cont_kernel_path=std_conf["gmx_kernel_cpu_cont"],
+                                               gmx_run_kernel_path=std_conf["gmx_kernel_cpu"],
                                                )
 
             scheduler.out_job_path = out_out_ligand_path + "/job_ligand.sh"
@@ -103,8 +106,8 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                input_data_path=input_ligand_path,
                                                num_replica=num_replica,
                                                code_path=code_path,
-                                               gmx_cont_kernel_path=template.gmx_submit_kernels_path + "/def_gpu_job_cont.sh",
-                                               gmx_run_kernel_path=template.gmx_submit_kernels_path + "/def_gpu_job.sh"
+                                               gmx_cont_kernel_path=std_conf["gmx_kernel_gpu_cont"],
+                                               gmx_run_kernel_path=std_conf["gmx_kernel_gpu"],
                                                )
 
             scheduler.out_job_path = out_complex_path + "/job_complex.sh"
@@ -121,7 +124,9 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                num_sim_threads=num_max_thread,
                                                input_data_path=input_ligand_path,
                                                num_replica=num_replica,
-                                               code_path=code_path
+                                               code_path=code_path,
+                                               gmx_cont_kernel_path=std_conf["gmx_kernel_cpu_cont"],
+                                               gmx_run_kernel_path=std_conf["gmx_kernel_cpu"],
                                                )
 
             scheduler.out_job_path = out_replica_path + "/job.sh"
@@ -143,8 +148,8 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                    input_data_path=input_ligand_path,
                                                    num_replica=num_replica,
                                                    code_path=code_path,
-                                                   gmx_cont_kernel_path=template.gmx_submit_kernels_path + "/def_gpu_job_cont.sh",
-                                                   gmx_run_kernel_path=template.gmx_submit_kernels_path + "/def_gpu_job.sh"
+                                                   gmx_cont_kernel_path=std_conf["gmx_kernel_gpu_cont"],
+                                                   gmx_run_kernel_path=std_conf["gmx_kernel_gpu"],
                                                    )
             else:
                 generate_conf.generate_ligand_conf(out_path=conf_path,
@@ -152,7 +157,9 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                    num_sim_threads=num_max_thread,
                                                    input_data_path=input_ligand_path,
                                                    num_replica=num_replica,
-                                                   code_path=code_path
+                                                   code_path=code_path,
+                                                   gmx_cont_kernel_path=std_conf["gmx_kernel_cpu_cont"],
+                                                   gmx_run_kernel_path=std_conf["gmx_kernel_cpu"],
                                                    )
 
             job_file_path = scheduler.generate_job_file(cluster=cluster_config is not None, cluster_config=cluster_config,
