@@ -38,12 +38,16 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/bigginlab/ABFE_workflow"
 
+[project.scripts]
+cli-abfe = "abfe_cli.ABFECalculator:main"
+cli-abfe-gmx = "abfe_cli.ABFECalculatorGmx:main"
 
-[tool.poetry]
-packages = [
-    {include = "abfe"},
-    {include = "abfe_cli"},
-]
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+abfe = ["**/*.sh", "**/*.smk", "**/*.mdp"]
+
 [tool.versioningit]
 default-version = "1+unknown"
 
@@ -57,9 +61,5 @@ method = "git"
 match = ["*"]
 default-tag = "0.0.0"
 
-[project.scripts]
-cli-abfe = "abfe_cli.ABFECalculator:main"
-cli-abfe-gmx = "abfe_cli.ABFECalculatorGmx:main"
-
 [tool.versioningit.write]
-file = "abfe/_version.py"
+file = "src/abfe/_version.py"
