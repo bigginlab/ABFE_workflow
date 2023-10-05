@@ -59,7 +59,7 @@ def get_final_results(in_root_dir: str, out_dir: str):
     return out_df_final_results, out_df_single_detailed_results
 
 
-if (__name__ == "__main__"):
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--in_root_dir', required=True, help='where are the ligand folders containing abfe results')
     parser.add_argument('-o', '--out_dir', required=False, default='.',
@@ -71,3 +71,7 @@ if (__name__ == "__main__"):
 
     out_df_final_results, out_df_single_detailed_results = get_final_results(out_dir=out_dir, in_root_dir=in_root_dir)
     print("writing out: ", out_df_final_results, "\n\t", out_df_single_detailed_results)
+
+
+if (__name__ == "__main__"):
+    main()

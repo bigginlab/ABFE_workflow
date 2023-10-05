@@ -6,7 +6,7 @@ import pandas as pd
 calculate dF for full system
 """
 
-if __name__ == "__main__":
+def main():
     # results list
     results = []
 
@@ -49,7 +49,6 @@ if __name__ == "__main__":
         v.update({"step": k})
         collapse.append(v)
 
-
     collapse.append({"step": "ABFE", "sys": "ABFE", "windows": "-", "MBAR": dG_totComp_MBAR - dG_totLig_MBAR, "TI": dG_totComp_TI - dG_totLig_TI, })
 
     # convert to pandas df.
@@ -60,3 +59,7 @@ if __name__ == "__main__":
 
     fin_df = fin_df.round(2)
     fin_df.to_csv(out_csv_path)
+
+
+if __name__ == "__main__":
+    main()
