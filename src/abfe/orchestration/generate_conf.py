@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Union
 
 import numpy as np
 
@@ -7,9 +7,9 @@ from abfe import template
 
 
 def generate_approach_conf(out_path: str,
-                           input_ligands_sdf_path: str,
-                           input_protein_pdb_path: str,
-                           input_cofactor_sdf_path: str,
+                           input_ligands_sdf_path: Union[str, None],
+                           input_protein_pdb_path: Union[str, None],
+                           input_cofactor_sdf_path: Union[str, None],
                            out_approach_path: str,
                            ligand_names: List[str],
                            num_replica: int,

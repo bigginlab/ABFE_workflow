@@ -44,10 +44,10 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
             os.mkdir(out_replica_path)
 
         # set global files:
-        snake_path = out_replica_path + "/Snakefile.smk"
+        global_snake_path = out_replica_path + "/Snakefile.smk"
         conf_path = out_replica_path + "/snake_conf.json"
 
-        generate_snake.generate_snake_file(out_file_path=snake_path,
+        generate_snake.generate_snake_file(out_file_path=global_snake_path,
                                            conf_file_path=conf_path)
 
         # build scheduler class
@@ -75,14 +75,16 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                )
 
             scheduler.out_job_path = out_out_ligand_path + "/job_ligand.sh"
-            if(not cluster_config is None):
+            if(cluster_config is not None):
                 cluster_config['partition'] = "cpu"
                 cluster =True
             else:
                 cluster =False
+
             job_ligand_file_path = scheduler.generate_job_file(cluster=cluster, cluster_config=cluster_config,
                                                                cluster_conf_path=out_out_ligand_path + "/cluster_conf.json",
                                                                out_prefix=ligand_rep_name, num_jobs=num_jobs,
+                                                               snake_file_path=snake_path,
                                                                snake_job="fep_ana_get_dg_ligand")
 
             # Prepare complex strand
@@ -106,10 +108,11 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                )
 
             scheduler.out_job_path = out_complex_path + "/job_complex.sh"
-            if(not cluster_config is None): cluster_config['partition'] = "gpu"
+            if(cluster_config is not None): cluster_config['partition'] = "gpu"
             job_complex_file_path = scheduler.generate_job_file(cluster=cluster, cluster_config=cluster_config,
                                                                 cluster_conf_path=out_complex_path + "/cluster_conf.json",
                                                                 out_prefix=ligand_rep_name, num_jobs=num_jobs,
+                                                                snake_file_path = snake_path,
                                                                 snake_job="fep_ana_get_dg_complex")
 
             # Global script
@@ -122,14 +125,15 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                )
 
             scheduler.out_job_path = out_replica_path + "/job.sh"
-            if(not cluster_config is None): cluster_config['partition'] = "cpu"
+            if(cluster_config is not None): cluster_config['partition'] = "cpu"
             job_file_path = scheduler.generate_job_file(cluster=cluster, cluster_config=cluster_config,
                                                         cluster_conf_path=out_replica_path + "/cluster_conf.json",
+                                                        snake_file_path=global_snake_path,
                                                         out_prefix=ligand_rep_name, num_jobs=num_jobs)
 
             # Final settings
             scheduler.out_job_path = [job_ligand_file_path, job_complex_file_path]
-            if(not cluster_config is None): cluster_config['partition'] = "gpu"
+            if(cluster_config is not None): cluster_config['partition'] = "gpu"
             ##############################################################################
         else:
             if (use_gpu):
@@ -153,11 +157,12 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
 
             job_file_path = scheduler.generate_job_file(cluster=cluster_config is not None, cluster_config=cluster_config,
                                                         cluster_conf_path=out_replica_path + "/cluster_conf.json",
+                                                        snake_file_path=global_snake_path,
                                                         out_prefix=ligand_rep_name, num_jobs=num_jobs)
             scheduler.out_job_path = [job_file_path]
 
         scheduler._final_job_path = job_file_path
-        _ = scheduler.generate_scheduler_file(out_prefix=ligand_rep_name, )
+        _ = scheduler.generate_scheduler_file(out_prefix=ligand_rep_name)
 
         if (submit):
             out = scheduler.schedule_run()
@@ -169,31 +174,6 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
     else:
         return None
 
-
-def calculate_all_ligands(input_ligand_paths: List[str],
-                          out_root_path: str,
-                          num_replicas: int, cluster_config: dict, submit: bool, num_jobs: int,
-                          num_max_thread: int, use_gpu: bool = True, hybrid_job: bool = True):
-    """
-        Deappreciated!
-
-    """
-    job_ids = []
-    for input_ligand_path in input_ligand_paths:
-        ligand_name = os.path.splitext(os.path.basename(input_ligand_path))[0]
-        out_ligand_path = out_root_path + "/" + str(ligand_name)
-
-        if (not os.path.exists(out_ligand_path)):
-            os.mkdir((out_ligand_path))
-
-        job_id = build_replicas_simulation_flow(out_ligand_path=out_ligand_path, input_ligand_path=input_ligand_path,
-                                                num_max_thread=num_max_thread,
-                                                num_replicas=num_replicas, cluster_config=cluster_config, submit=submit,
-                                                num_jobs=num_jobs,
-                                                use_gpu=use_gpu, hybrid_job=hybrid_job)
-        job_ids.append(job_id)
-
-    return job_ids
 
 
 def build_ligand_flows(input_ligand_paths: List[str],

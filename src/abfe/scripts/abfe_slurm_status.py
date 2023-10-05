@@ -3,7 +3,8 @@
 import subprocess
 import sys
 
-if __name__ == "__main__":
+
+def main():
     jobid = sys.argv[1]
 
     output = str(subprocess.check_output("sacct -j %s --format State --noheader | head -1 | awk '{print $1}'" % jobid, shell=True).strip())
@@ -15,3 +16,7 @@ if __name__ == "__main__":
         print("running")
     else:
         print("failed")
+
+
+if __name__ == "__main__":
+    main()
