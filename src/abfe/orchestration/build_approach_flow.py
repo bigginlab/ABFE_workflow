@@ -9,15 +9,15 @@ def build_approach_flow(approach_name: str, num_jobs: int, conf: dict, cluster_c
 
     if("input_ligands_sdf_path" in conf):
         generate_conf.generate_approach_conf(out_path=approach_conf_path,
-                                         out_approach_path=conf["out_approach_path"],
-                                         input_ligands_sdf_path=conf["input_ligands_sdf_path"],
-                                         input_protein_pdb_path=conf["input_protein_pdb_path"],
-                                         input_cofactor_sdf_path=conf["input_cofactor_sdf_path"],
-                                         ligand_names=conf["ligand_names"],
-                                         num_replica=conf['num_replica'],
-                                         python_bin=os.environ["CONDA_PREFIX"] + "/bin/python",
-                                         build_system=conf["build_system"],
-                                        small_mol_ff = conf["small_mol_ff"]
+                                             out_approach_path=conf["out_approach_path"],
+                                             input_ligands_sdf_path=conf["input_ligands_sdf_path"],
+                                             input_protein_pdb_path=conf["input_protein_pdb_path"],
+                                             input_cofactor_sdf_path=conf["input_cofactor_sdf_path"],
+                                             ligand_names=conf["ligand_names"],
+                                             num_replica=conf['num_replica'],
+                                             python_bin=os.environ["CONDA_PREFIX"] + "/bin/python",
+                                             build_system=conf["build_system"],
+                                             small_mol_ff = conf["small_mol_ff"]
                                              )
     else:
         generate_conf.generate_approach_conf(out_path=approach_conf_path,

@@ -11,8 +11,9 @@ dynamic = ["version"]
 authors=[
     {name="Benjamin Ries", email="benjamin.ries@boehringer-ingelheim.com"},
     {name="Irfan Alibay"},
-    {name="Aniket Magarkar", email="aniket.magarkar@boehringer-ingelheim.com"},
     {name="Philip Biggins", email="philip.biggin@bioch.ox.ac.uk"},
+    {name="Aniket Magarkar", email="aniket.magarkar@boehringer-ingelheim.com"},
+
 ]
 dependencies = [
   'snakemake',
@@ -37,9 +38,12 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/bigginlab/ABFE_workflow"
 
-[tool.setuptools]
-py-modules = ["abfe", "abfe_cli"]
 
+[tool.poetry]
+packages = [
+    {include = "abfe"},
+    {include = "abfe_cli"},
+]
 [tool.versioningit]
 default-version = "1+unknown"
 
