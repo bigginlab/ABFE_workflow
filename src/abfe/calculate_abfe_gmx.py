@@ -32,7 +32,7 @@ def calculate_abfe_gmx(input_dir:str, out_root_folder_path: str, approach_name: 
     os.chdir(conf["out_approach_path"])
 
     #get Ligands:
-    conf["num_jobs"] = num_jobs_receptor_workflow if (num_jobs_receptor_workflow is not None) else len(conf["ligand_names"]) * num_replicas * 2
+    conf["num_jobs"] = num_jobs_receptor_workflow if (num_jobs_receptor_workflow is not None) else len(os.listdir(conf["input_path"])) * num_replicas * 2
     conf["num_replica"] = num_replicas
 
     ligand_dirs = [conf["input_path"]+"/"+d for d in os.listdir(conf["input_path"]) if(os.path.isdir(conf["input_path"]+"/"+d))]
