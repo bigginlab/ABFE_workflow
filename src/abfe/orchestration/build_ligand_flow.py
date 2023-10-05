@@ -75,8 +75,12 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                )
 
             scheduler.out_job_path = out_out_ligand_path + "/job_ligand.sh"
-            cluster_config['partition'] = "cpu"
-            job_ligand_file_path = scheduler.generate_job_file(cluster=True, cluster_config=cluster_config,
+            if(not cluster_config is None):
+                cluster_config['partition'] = "cpu"
+                cluster =True
+            else:
+                cluster =False
+            job_ligand_file_path = scheduler.generate_job_file(cluster=cluster, cluster_config=cluster_config,
                                                                cluster_conf_path=out_out_ligand_path + "/cluster_conf.json",
                                                                out_prefix=ligand_rep_name, num_jobs=num_jobs,
                                                                snake_job="fep_ana_get_dg_ligand")
@@ -102,8 +106,8 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                )
 
             scheduler.out_job_path = out_complex_path + "/job_complex.sh"
-            cluster_config['partition'] = "gpu"
-            job_complex_file_path = scheduler.generate_job_file(cluster=True, cluster_config=cluster_config,
+            if(not cluster_config is None): cluster_config['partition'] = "gpu"
+            job_complex_file_path = scheduler.generate_job_file(cluster=cluster, cluster_config=cluster_config,
                                                                 cluster_conf_path=out_complex_path + "/cluster_conf.json",
                                                                 out_prefix=ligand_rep_name, num_jobs=num_jobs,
                                                                 snake_job="fep_ana_get_dg_complex")
@@ -118,14 +122,14 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                )
 
             scheduler.out_job_path = out_replica_path + "/job.sh"
-            cluster_config['partition'] = "cpu"
-            job_file_path = scheduler.generate_job_file(cluster=True, cluster_config=cluster_config,
+            if(not cluster_config is None): cluster_config['partition'] = "cpu"
+            job_file_path = scheduler.generate_job_file(cluster=cluster, cluster_config=cluster_config,
                                                         cluster_conf_path=out_replica_path + "/cluster_conf.json",
                                                         out_prefix=ligand_rep_name, num_jobs=num_jobs)
 
             # Final settings
             scheduler.out_job_path = [job_ligand_file_path, job_complex_file_path]
-            cluster_config['partition'] = "gpu"
+            if(not cluster_config is None): cluster_config['partition'] = "gpu"
             ##############################################################################
         else:
             if (use_gpu):
