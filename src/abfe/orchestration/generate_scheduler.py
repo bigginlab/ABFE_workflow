@@ -98,7 +98,8 @@ class scheduler():
                             "--cluster-config " + cluster_conf_path + " "
                              "--cluster-status " + status_script_path + " "
                              "--cluster-cancel \"scancel\" "
-                             "--jobs " + str(num_jobs) + " --latency-wait " + str(latency_wait) + " --rerun-incomplete " + snake_job +" 1>  "+ str(out_prefix)+".out "
+                             "--jobs " + str(num_jobs) + " --latency-wait " + str(latency_wait) + " "
+                             "--rerun-incomplete -s Snakefile.smk" + snake_job +" 1>  "+ str(out_prefix)+".out "
                                                                                                                                                    "2>"+ str(out_prefix)+".err"
             ])
         elif (cluster):
@@ -107,7 +108,7 @@ class scheduler():
             file_str = "\n".join([
                 "#!/bin/env bash",
                 "snakemake -c " + str(self.n_cores) + " -j "+str(num_jobs)+" --latency-wait " + str(
-                    latency_wait) + " --rerun-incomplete " + snake_job
+                    latency_wait) + " --rerun-incomplete -s Snakefile.smk" + snake_job
             ])
 
         file_io = open(self.out_job_path, "w")
