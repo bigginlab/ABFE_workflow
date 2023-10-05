@@ -44,7 +44,7 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
             os.mkdir(out_replica_path)
 
         # set global files:
-        snake_path = out_replica_path + "/Snakefile.smk.smk.smk"
+        snake_path = out_replica_path + "/Snakefile.smk"
         conf_path = out_replica_path + "/snake_conf.json"
 
         generate_snake.generate_snake_file(out_file_path=snake_path,
@@ -61,7 +61,7 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
             if (not os.path.exists(out_out_ligand_path)):
                 os.mkdir(out_out_ligand_path)
 
-            snake_path = out_out_ligand_path + "/Snakefile.smk.smk.smk"
+            snake_path = out_out_ligand_path + "/Snakefile.smk"
             ligand_conf_path = out_out_ligand_path + "/snake_conf.json"
             generate_snake.generate_snake_file(out_file_path=snake_path,
                                                conf_file_path=conf_path)
@@ -90,7 +90,7 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
             if (not os.path.exists(out_replica_path + "/complex")):
                 os.mkdir(out_complex_path)
 
-            snake_path = out_complex_path + "/Snakefile.smk.smk.smk"
+            snake_path = out_complex_path + "/Snakefile.smk"
             complex_conf_path = out_complex_path + "/snake_conf.json"
             generate_snake.generate_snake_file(out_file_path=snake_path,
                                                conf_file_path=conf_path)

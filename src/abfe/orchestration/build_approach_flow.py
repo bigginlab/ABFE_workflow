@@ -4,7 +4,7 @@ from abfe.orchestration import generate_conf, generate_snake, generate_scheduler
 
 def build_approach_flow(approach_name: str, num_jobs: int, conf: dict, cluster_config={}, submit=False):
     out_path = conf["out_approach_path"]
-    snake_path = out_path + "/Snakefile.smk.smk.smk"
+    snake_path = out_path + "/Snakefile.smk"
     approach_conf_path = out_path + "/snake_conf.json"
 
     if("input_ligands_sdf_path" in conf):
