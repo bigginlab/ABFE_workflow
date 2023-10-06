@@ -51,7 +51,7 @@ def calculate_abfe(protein_pdb_path: str, ligand_sdf_paths: List[str], out_root_
                        cluster_config=cluster_config,
                        use_gpu=use_gpu, hybrid_job=hybrid_job)
 
-    print("\tstarting preparing ABFE-Approach file structur: ", out_root_folder_path)
+    print("\tstarting preparing ABFE-Approach file structure: ", out_root_folder_path)
     expected_out_paths = int(num_replicas) * len(conf["ligand_names"])
     result_paths = glob.glob(conf["out_approach_path"] + "/*/*/dG*tsv")
 
