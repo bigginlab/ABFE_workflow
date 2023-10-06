@@ -29,7 +29,8 @@ def generate_ligand_conf(out_path: str, code_path: str, run_path: str, input_dat
                          n_vdw_windows_complex: int = 21, n_rest_windows_complex: int = 11, n_coul_windows_complex: int = 11,
                          n_vdw_windows_ligand: int = 11, n_coul_windows_ligand: int = 11,
                          gmx_run_kernel_path: str = template.gmx_submit_kernels_path + "/def_cpu_job.sh",
-                         gmx_cont_kernel_path: str = template.gmx_submit_kernels_path + "/def_cpu_job_cont.sh"):
+                         gmx_cont_kernel_path: str = template.gmx_submit_kernels_path + "/def_cpu_job_cont.sh",
+                         gmx_add_flag:str=""):
     ## Ugly implementation every defined variable is added to conf! :)
 
     ## get all the window ids
@@ -59,6 +60,7 @@ def generate_ligand_conf(out_path: str, code_path: str, run_path: str, input_dat
 
     gmx_run_kernel_path = gmx_run_kernel_path
     gmx_cont_kernel_path = gmx_cont_kernel_path
+    gmx_add_flag = gmx_add_flag
 
     conf_settings = {k: v for k, v in locals().items() if not k.startswith("__")}
 

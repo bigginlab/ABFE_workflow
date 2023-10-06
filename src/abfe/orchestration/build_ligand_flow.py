@@ -75,6 +75,7 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                code_path=code_path,
                                                gmx_cont_kernel_path=std_conf["gmx_kernel_cpu_cont"],
                                                gmx_run_kernel_path=std_conf["gmx_kernel_cpu"],
+                                               gmx_add_flag=std_conf['gmx_add_flag'],
                                                )
 
             scheduler.out_job_path = out_out_ligand_path + "/job_ligand.sh"
@@ -108,6 +109,7 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                code_path=code_path,
                                                gmx_cont_kernel_path=std_conf["gmx_kernel_gpu_cont"],
                                                gmx_run_kernel_path=std_conf["gmx_kernel_gpu"],
+                                               gmx_add_flag=std_conf['gmx_add_flag'],
                                                )
 
             scheduler.out_job_path = out_complex_path + "/job_complex.sh"
@@ -127,6 +129,7 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                code_path=code_path,
                                                gmx_cont_kernel_path=std_conf["gmx_kernel_cpu_cont"],
                                                gmx_run_kernel_path=std_conf["gmx_kernel_cpu"],
+                                               gmx_add_flag=std_conf['gmx_add_flag'],
                                                )
 
             scheduler.out_job_path = out_replica_path + "/job.sh"
@@ -150,6 +153,7 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                    code_path=code_path,
                                                    gmx_cont_kernel_path=std_conf["gmx_kernel_gpu_cont"],
                                                    gmx_run_kernel_path=std_conf["gmx_kernel_gpu"],
+                                                   gmx_add_flag=std_conf['gmx_add_flag'],
                                                    )
             else:
                 generate_conf.generate_ligand_conf(out_path=conf_path,
@@ -160,6 +164,7 @@ def build_replicas_simulation_flow(out_ligand_path: str, input_ligand_path: str,
                                                    code_path=code_path,
                                                    gmx_cont_kernel_path=std_conf["gmx_kernel_cpu_cont"],
                                                    gmx_run_kernel_path=std_conf["gmx_kernel_cpu"],
+                                                   gmx_add_flag=std_conf['gmx_add_flag'],
                                                    )
 
             job_file_path = scheduler.generate_job_file(cluster=cluster_config is not None, cluster_config=cluster_config,

@@ -23,6 +23,7 @@ rule equil_run_complex_emin:
             set -e
             cd {params.run_dir}
             cp {params.gmx_template} ./job_emin.sh   
+            chmod +x ./job_emin.sh
             ./job_emin.sh {params.nthreads} emin {input.top} {input.gro} 
         '''
 
@@ -43,6 +44,7 @@ rule equil_run_complex_nvt_heat:
             set -e
             cd {params.run_dir}
             cp {params.gmx_template} ./job_nvt_heat.sh   
+            chmod +x ./job_nvt_heat.sh
             ./job_nvt_heat.sh {params.nthreads} nvt_heat  {input.top} {input.gro}
         '''
 
@@ -64,6 +66,7 @@ rule equil_run_complex_npt_eq1:
             set -e
             cd {params.run_dir}
             cp {params.gmx_template} ./job_npt_eq1.sh   
+            chmod +x ./job_npt_eq1.sh
             ./job_npt_eq1.sh {params.nthreads} npt_equil1 {input.top} {input.gro} {input.cpt}
         '''
 
@@ -85,6 +88,7 @@ rule equil_run_complex_npt_eq2:
             set -e
             cd {params.run_dir}
             cp {params.gmx_template} ./job_npt_eq2.sh   
+            chmod +x ./job_npt_eq2.sh
             ./job_npt_eq2.sh {params.nthreads} npt_equil2 {input.top} {input.gro} {input.cpt}
         '''
 
@@ -107,6 +111,7 @@ rule equil_run_complex_prod:
             set -e
             cd {params.run_dir}
             cp {params.gmx_template} ./job_npt_prod.sh   
+            chmod +x ./job_npt_prod.sh
             ./job_npt_prod.sh  {params.nthreads} npt_prod {input.top} {input.gro} {input.cpt}
         '''
 
