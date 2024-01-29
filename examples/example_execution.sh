@@ -3,6 +3,6 @@
 
 conda activate abfe
 
-cli-abfe -p ./CyclophilinD_data/minimal_input/receptor_protein.pdb \
-         -l ./CyclophilinD_data/minimal_input/ligands \
+cli-abfe -p ./data/CyclophilinD_min/receptor.pdb \
+         -l ./data/CyclophilinD_min/ligands \
          -nr 3 -njr 8 -njl 40
