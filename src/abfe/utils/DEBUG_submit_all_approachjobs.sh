@@ -7,13 +7,13 @@ do
   cd ${x}
   schedulerPath="${x}/scheduler.sh"
   echo "Submit: ${schedulerPath}";
-  snakemake --unlock;
+  snakemake --unlock -s Snakefile.smk;
   cd complex
-  snakemake --unlock;
+  snakemake --unlock -s Snakefile.smk;
   cd ..
   cd ligand
-  snakemake --unlock;
+  snakemake --unlock -s Snakefile.smk;
   cd ..
-  eval ${schedulerPath}; 
+  #eval ${schedulerPath}; 
   cd ${initPATH}
 done
