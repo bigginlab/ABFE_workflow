@@ -41,6 +41,7 @@ classifiers = [
 [project.scripts]
 cli-abfe = "abfe_cli.ABFECalculator:main"
 cli-abfe-gmx = "abfe_cli.ABFECalculatorGmx:main"
+cli-abfe-gather ="abfe_cli.ABFEGatherResults:main"
 abfe_slurm_status ="abfe.scripts.abfe_slurm_status:main"
 
 [tool.setuptools.packages.find]
