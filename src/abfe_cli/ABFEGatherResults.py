@@ -30,8 +30,10 @@ def main():
         raise IOError("could not find out_dir: "+str(args.out_dir))
 
     print("Trying to gather ready results from ", in_dir)
-    final_receptor_results.get_final_results(out_dir=out_dir, in_root_dir=in_dir)
-
+    print("Searching: ")
+    out_df_final_results, out_df_single_detailed_results =    final_receptor_results.get_final_results(out_dir=out_dir, in_root_dir=in_dir)
+    print()
+    print("Get the final results from here: ", out_df_final_results)
 
 if __name__ == "__main__":
     main()
