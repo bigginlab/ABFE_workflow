@@ -47,7 +47,7 @@ abfe_slurm_status ="abfe.scripts.abfe_slurm_status:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-abfe = ["**/*.sh", "**/*.smk", "**/*.mdp"]
+abfe = ["**/*.sh", "**/*.smk", "**/*.mdp", "**/*.json"]
 
 [tool.versioningit]
 default-version = "1+unknown"

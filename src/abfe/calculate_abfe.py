@@ -58,7 +58,6 @@ def calculate_abfe(protein_pdb_path: str, ligand_sdf_paths: List[str], out_root_
     job_approach_file_path= None
     if (len(result_paths) != expected_out_paths):
         print("\tBuild approach struct")
-        cluster_config = {}
         job_approach_file_path = build_approach_flow(approach_name=approach_name,
                                                      num_jobs=conf["num_jobs"],
                                                      conf=conf, submit=submit,

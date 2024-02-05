@@ -49,11 +49,17 @@ def prepare_md_system(protein="", ligand="", cofactor=""):
 
 
 def process_ligand(ligand, out_dir: str, name="LIG", hmr: bool = True, ff="openff"):
-    print("proc")
-    print(ligand)
     # Add a line to convert molecule to sdf by babel for safe processing
+    tmp_mol = None
     if ".sdf" in ligand:
         ligand_filename = ligand.replace(".sdf", "")
+
+        # Ensure sdf standard - for biosimspace
+        #mol = next(Chem.SDMolSupplier(ligand, removeHs=False))
+        #wri = Chem.SDWriter(ligand)
+        #wri.write(mol)
+        #time.sleep(5) #file latency
+
     elif ".mol2" in ligand:
         ligand_filename = ligand.replace(".mol2", "")
     else:
@@ -61,6 +67,10 @@ def process_ligand(ligand, out_dir: str, name="LIG", hmr: bool = True, ff="openf
 
     if not os.path.isfile(os.path.join(ligand_filename, "for_gromacs", "MOL.top")):
         gen_ffparams(input_molecule=ligand, output_dir=out_dir, input_molecule_name=name, hmr=hmr, ff=ff)
+
+    if(tmp_mol is not None):
+        os.remove(tmp_mol)
+
     top_file = os.path.join(out_dir, "for_gromacs", "MOL.top")
     gro_file = os.path.join(out_dir, "for_gromacs", "MOL.gro")
 

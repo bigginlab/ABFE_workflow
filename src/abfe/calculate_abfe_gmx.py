@@ -67,7 +67,7 @@ def calculate_abfe_gmx(input_dir:str, out_root_folder_path: str, approach_name: 
 
     if (len(result_paths) != expected_out_paths):
         print("\tBuild approach struct")
-        cluster_config = {}
+
         job_approach_file_path = build_approach_flow(approach_name=approach_name,
                                                      num_jobs=conf["num_jobs"],
                                                      conf=conf, submit=submit,

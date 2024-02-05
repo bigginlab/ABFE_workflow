@@ -36,11 +36,11 @@ def build_approach_flow(approach_name: str, num_jobs: int, conf: dict, cluster_c
                                                 conf_file_path=approach_conf_path,
                                                 gmx=not conf["build_system"])
 
-    scheduler = generate_scheduler.scheduler(out_dir_path=out_path, n_cores=num_jobs)
+    scheduler = generate_scheduler.scheduler(out_dir_path=out_path, n_cores=num_jobs, cluster_config=cluster_config)
     scheduler.generate_job_file(cluster=False,
                                 out_prefix=approach_name, num_jobs=num_jobs,
                                 snake_file_path=snake_path,
-                                snake_job="")
+                                snake_job="", cluster_config=cluster_config)
 
     scheduler.generate_scheduler_file(out_prefix="ABFE_approach" + approach_name, )
 

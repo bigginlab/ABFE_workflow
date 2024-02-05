@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import glob
+import json
 import argparse
 
 from abfe.calculate_abfe_gmx import calculate_abfe_gmx
+from abfe.template import default_slurm_config_path
 
 import logging
 loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
@@ -24,34 +25,35 @@ def main():
                         type=int)
     parser.add_argument('-njl', "--number_of_parallel_ligand_jobs", help='Number of jobs in parallel for ligand workflow', required=False, default=40, type=int)
     parser.add_argument('-ncl', "--number_of_cpus_per_ligand_job", help='Number of cpus per ligand job', required=False, default=8, type=int)
-    parser.add_argument('-nosubmit', help='Will automatically submit the ABFE calculations', required=False, action='store_false')
+    parser.add_argument('-nosubmit', help='Will automatically submit the ABFE calculations', required=False, action='store_true')
     parser.add_argument('-nogpu', help='shall gpus be used for the submissions? WARNING: Currently Not working', required=False, action='store_true')
     parser.add_argument('-nohybrid', help='hybrid flag executes complex jobs on gpu and ligand jobs on cpu (requires gpu flag) WARNING: Currently Not working',
                         required=False,
                         action='store_true')
 
     args = parser.parse_args()
-    print(args.nogpu)
 
-    if (not bool(args.nogpu)):
-        cluster_config = {
-            "partition": "gpu",
-            "time": "60:00:00",
-            "mem": "5000",
-        }
-
+    if args.nosubmit:
+        cluster_config = None
     else:
-        cluster_config = {
-            "partition": "cpu",
-            "time": "60:00:00",
-            "mem": "5000",
-        }
+        if args.nogpu:
+            cluster_config = json.load(open(f"{default_slurm_config_path}", "r"))
+            cluster_config["Snakemake_job"]["queue_job_options"]["cpus-per-task"] = int(args.number_of_parallel_receptor_jobs)
+            cluster_config["Sub_job"]["queue_job_options"]["cpus-per-task"] = int(args.number_of_parallel_ligand_jobs)
+
+        else:
+            cluster_config = json.load(open(f"{default_slurm_config_path}", "r"))
+            cluster_config["Snakemake_job"]["queue_job_options"]["cpus-per-task"] = int(args.number_of_parallel_receptor_jobs)
+            cluster_config["Sub_job"]["queue_job_options"]["cpus-per-task"] = int(args.number_of_parallel_ligand_jobs)
+            cluster_config["Sub_job"]["queue_job_options"]["partition"] = "gpu"
+
+    print(args.gmx_files_root_dir)
 
     res = calculate_abfe_gmx(input_dir=args.gmx_files_root_dir, out_root_folder_path=args.output_dir_path, approach_name=args.project_name,
                    n_cores_per_job=args.number_of_cpus_per_ligand_job, num_jobs_per_ligand=args.number_of_parallel_ligand_jobs,
                    num_jobs_receptor_workflow=args.number_of_parallel_receptor_jobs,
                    num_replicas=args.number_of_replicates,
-                   submit=bool(args.nosubmit), use_gpu=not bool(args.nogpu), hybrid_job=not bool(args.nohybrid),
+                   submit=not bool(args.nosubmit), use_gpu=not bool(args.nogpu), hybrid_job=not bool(args.nohybrid),
                    cluster_config=cluster_config)
 
     return res

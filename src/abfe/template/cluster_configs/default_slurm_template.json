@@ -1,0 +1,32 @@
+{
+    "Snakemake_job": {
+        "queue_submission_cmd": "sbatch",
+        "queue_abort_cmd": "scancel",
+        "queue_status_script": "abfe_slurm_status",
+        "queue_dependency": {
+            "key": "dependency",
+            "value": "afterok",
+            "sep": ":"
+        },
+        "queue_job_options": {
+            "partition": "cpu",
+            "mem": "5000",
+            "cpus-per-task": 5
+        }
+    },
+    "Sub_job": {
+        "queue_submission_cmd": "sbatch",
+        "queue_abort_cmd": "scancel",
+        "queue_status_script": "abfe_slurm_status",
+        "queue_dependency": {
+            "key": "dependency",
+            "value": "afterok",
+            "sep": ":"
+        },
+        "queue_job_options": {
+            "partition": "cpu",
+            "mem": "5000",
+            "cpus-per-task": 5
+        }
+    }
+}

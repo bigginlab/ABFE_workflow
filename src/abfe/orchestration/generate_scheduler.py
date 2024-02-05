@@ -1,20 +1,30 @@
 import json
 import os
 import stat
+import copy
 import subprocess
-
-from abfe.scripts import abfe_slurm_status
-
+from abfe.template import default_slurm_config_path
 
 class scheduler():
 
-    def __init__(self, out_dir_path: str, n_cores: int = 1, time: str = "96:00:00", partition="cpu") -> None:
+    def __init__(self, out_dir_path: str, n_cores: int = 1, time: str = "96:00:00", partition:str="cpu", cluster_config:dict={}) -> None:
         self.n_cores = n_cores
         self.out_dir_path = out_dir_path
         self.out_job_path = out_dir_path + "/job.sh"
         self.out_scheduler_path = out_dir_path + "/scheduler.sh"
         self.time = time
         self.partition = partition
+        self.def_cluster_config  = json.load(open(f"{default_slurm_config_path}", "r"))
+
+        self.cluster_config = cluster_config
+        if(cluster_config is not None):
+            for big_key, small_keys in self.def_cluster_config.items():
+                if(big_key in self.cluster_config):
+                    for def_key, def_val in small_keys.items():
+                        if (def_key not in self.cluster_config[big_key]):
+                            self.cluster_config[big_key][def_key] = def_val
+                else:
+                    self.cluster_config[big_key] = small_keys
 
     def generate_scheduler_file(self, out_prefix):
         if (isinstance(self.out_job_path, str)):
@@ -23,25 +33,38 @@ class scheduler():
         file_str = [
             "#!/bin/env bash",
             "",
-            # "conda activate abfe",
         ]
+        #SnakeMake Scheduler File:
+        cluster_config = copy.deepcopy(self.cluster_config["Snakemake_job"])
+
         for i, job_path in enumerate(self.out_job_path):
             basename = os.path.basename(job_path).replace(".sh", "")
+
+            cluster_config["queue_job_options"]["job-name"] = str(out_prefix) + "_" + str(basename) + "_scheduler "
+            cluster_options = " ".join(["--" + key + "=" + str(val) + " " for key, val in cluster_config["queue_job_options"].items()])
+
             file_str.extend([
                 "",
                 "cd " + os.path.dirname(job_path),
-                "job" + str(i) + "=$(sbatch -p cpu -c " + str(self.n_cores) + " -J " + str(
-                    out_prefix + "_" + basename) + "_scheduler " + job_path + ")",
+                "job" + str(i) + "=$(" + cluster_config["queue_submission_cmd"] + " " + cluster_options + job_path + ")",
                 "jobID" + str(i) + "=$(echo $job" + str(i) + " | awk '{print $4}')",
                 "echo \"${jobID" + str(i) + "}\"",
             ])
 
         if (len(self.out_job_path) > 1):
+            cluster_config = copy.deepcopy(self.cluster_config["Snakemake_job"])
+            cluster_config["job-name"] = str(out_prefix) + "_final_ana_scheduler "
+            cluster_options = " ".join(["--" + key + "=" + str(val) + " " for key, val in cluster_config["queue_job_options"].items()])
+
+            dependency_key = cluster_config["queue_dependency"]["key"]
+            dependency_value = cluster_config["queue_dependency"]["value"]
+            dependency_sep = cluster_config["queue_dependency"]["sep"]
+
+            deps = (f"--{dependency_key}={dependency_value}{dependency_sep}" + dependency_sep.join(["${jobID" + str(i) + "}(" for i in range(len(
+                self.out_job_path))]))
             file_str.append("\n")
             file_str.append("echo " + ":".join(["${jobID" + str(i) + "}" for i in range(len(self.out_job_path))]))
-            file_str.append("sbatch -p cpu  --dependency=afterok:" + ":".join(
-                ["${jobID" + str(i) + "}" for i in range(len(self.out_job_path))]) + " -c " + str(
-                self.n_cores) + " -J " + str(out_prefix + "_final_ana") + "_scheduler " + self._final_job_path)
+            file_str.append(cluster_config["queue_submission_cmd"] + " " + cluster_options + " " + deps + " " + self._final_job_path)
 
         file_str = "\n".join(file_str)
         file_io = open(self.out_scheduler_path, "w")
@@ -52,28 +75,16 @@ class scheduler():
         return self.out_scheduler_path
 
     def generate_job_file(self, out_prefix, cluster_conf_path: str = None, cluster_config: dict = None, cluster=False,
-                          num_jobs: int = 1, latency_wait: int = 460, snake_file_path=None, snake_job=""):
+                          num_jobs: int = 1, latency_wait: int = 1000, snake_file_path=None, snake_job=""):
 
         if (snake_file_path is not None):
             snake_job = " -s "+snake_file_path+" " + snake_job
 
-        if (cluster and cluster_config is not None and cluster_conf_path is not None):
+        if (cluster and self.cluster_config is not None and cluster_conf_path is not None):
             root_dir = os.path.dirname(cluster_conf_path)
             slurm_logs = os.path.dirname(cluster_conf_path) + "/slurm_logs"
-            if (not os.path.exists(slurm_logs)): os.mkdir(slurm_logs)
-
-            def_cluster_config = {
-                "partition": "cpu",
-                "mem": "5000",
-            }
-
-            for def_key, def_val in def_cluster_config.items():
-                if (def_key not in cluster_config):
-                    cluster_config[def_key] = def_val
-
-            if (not all([x in cluster_config for x in ["partition", "mem"]])):
-                raise ValueError("missing keys in cluster_config! at least give: [\"partition\", \"time\", \"mem\"] ",
-                                 cluster_config)
+            if (not os.path.exists(slurm_logs)):
+                os.mkdir(slurm_logs)
 
             if (out_prefix == ""):
                 name = str(out_prefix) + "{name}.{jobid}"
@@ -82,7 +93,8 @@ class scheduler():
                 name = str(out_prefix) + ".{name}.{jobid}"
                 log = slurm_logs + "/" + str(out_prefix) + "_{name}_{jobid}"
 
-            cluster_config.update({
+            cluster_config = copy.deepcopy(self.cluster_config["Sub_job"])
+            cluster_config["queue_job_options"].update({
                 "cpus-per-task": '{threads}',
                 "cores-per-socket": '{threads}',
                 "chdir": root_dir,
@@ -91,24 +103,25 @@ class scheduler():
                 "error": "\\\"" + log + ".err\\\""
             })
 
-            json.dump(cluster_config, open(cluster_conf_path, "w"), indent="  ")
-            cluster_options = " ".join(["--" + key + "=" + str(val) + " " for key, val in cluster_config.items()]) + " --parsable"
-            status_script_path = os.path.basename(abfe_slurm_status.__file__.replace(".py", ""))
+            json.dump(self.cluster_config["Sub_job"]["queue_job_options"], open(cluster_conf_path, "w"), indent="  ")
+            cluster_options = " ".join(["--" + key + "=" + str(val) + " " for key, val in cluster_config["queue_job_options"].items()]) + " --parsable"
+
+            status_script_path = self.cluster_config["Sub_job"]["queue_status_script"]
 
             # TODO: change this here, such each job can access resource from cluster-config!
             file_str = "\n".join([
                 "#!/bin/env bash",
-                "snakemake --cluster \"sbatch " + cluster_options + "\" "
+                "snakemake --cluster \"" + cluster_config["queue_submission_cmd"] + " " + cluster_options + "\" "
                             "--cluster-config " + cluster_conf_path + " "
                              "--cluster-status " + status_script_path + " "
-                             "--cluster-cancel \"scancel\" "
+                             "--cluster-cancel \""+cluster_config["queue_abort_cmd"]+"\" "
                              "--jobs " + str(num_jobs) + " --latency-wait " + str(latency_wait) + " "
-                             "--rerun-incomplete " + snake_job +" 1>  "+ str(out_prefix)+".out "
-                                                                                                                                                   "2>"+ str(out_prefix)+".err"
+                             "--rerun-incomplete " + snake_job +" 1>  "+ str(out_prefix)+".out 2>"+ str(out_prefix)+".err"
             ])
         elif (cluster):
             raise ValueError("give cluster conf! ")
         else:
+
             file_str = "\n".join([
                 "#!/bin/env bash",
                 "snakemake -c " + str(self.n_cores) + " -j "+str(num_jobs)+" --latency-wait " + str(
