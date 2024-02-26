@@ -11,11 +11,11 @@ The `data` folder contains 2 example systems CyclophilinD and HSP90, with differ
 Please find the following example scripts:
 
 CLI:
-- example_executions.sh
-- example_execution_gmx.sh
+- `example_executions.sh`
+- `example_execution_gmx.sh`
 
 Python:
-- example_execution.py
+- `example_execution.py`
 
   
 We also provide the expected results in the `data` directories.
