@@ -21,7 +21,6 @@ jobs:
       matrix:
         os: ['ubuntu',]
         python-version:
-          - "3.9"
           - "3.10"
           - "3.11"
         include:
@@ -35,7 +34,7 @@ jobs:
         run: echo "date=$(date +%Y-%m-%d)" >> "${GITHUB_OUTPUT}"
       - uses: mamba-org/setup-micromamba@v1
         with:
-          environment-file: environment.yml
+          environment-file: environment_pinnedVersions.yml
           environment-name: abfe
           cache-environment: true
           cache-downloads: true
