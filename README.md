@@ -1,5 +1,5 @@
 # ABFE_workflow
-[![build-package](https://github.com/bigginlab/ABFE_workflow/actions/workflows/build-package.yml/badge.svg?branch=main)](https://github.com/bigginlab/ABFE_workflow/actions/workflows/build-package.yml)
+[![build-package](https://github.com/bigginlab/ABFE_workflow/actions/workflows/build-package.yml/badge.svg)](https://github.com/bigginlab/ABFE_workflow/actions/workflows/build-package.yml)
 
 A snakemake based workflow for ABFE calculations using GMX. The workflow can be scaled on Slurm Queuing systems.
 The here provided Cyclophilin D Test systems and experimental values originate from:
