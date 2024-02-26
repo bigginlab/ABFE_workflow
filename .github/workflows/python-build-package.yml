@@ -43,7 +43,7 @@ jobs:
             python=${{ matrix.python-version }}
 
       - name: "Install"
-        run: pip install --no-deps -e .
+        run: pip install .
 
       - name: "Test imports"
         run: |
