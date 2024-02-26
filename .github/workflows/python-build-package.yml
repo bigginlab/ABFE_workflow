@@ -47,13 +47,13 @@ jobs:
 
       - name: "Test imports"
         run: |
-          python -Ic "import abfe"
+          conda activate abfe; python -Ic "import abfe"
 
       - name: "Test CLI abfe"
         run: |
-          cli-abfe -h
+          conda activate abfe; cli-abfe -h
 
       - name: "Test CLI abfe-gmx"
         run: |
-          cli-abfe-gmx -h
+          conda activate abfe; cli-abfe-gmx -h
           
