@@ -4,8 +4,8 @@ Examples
 This directory contains example usages of our ABFE_Workflow from different starting points and from different layers (python or CLI).
 
 The `data` folder contains 2 example systems CyclophilinD and HSP90, with different starting points: 
-- from a simple protein.pdb and small molecule sdf files
-- from already prepared GROMACS systems with .gro and .top files.
+- from a simple protein `.pdb` and small molecule `.sdf` files
+- from already prepared GROMACS systems with `.gro` and `.top` files.
 
 
 Please find the following example scripts:
