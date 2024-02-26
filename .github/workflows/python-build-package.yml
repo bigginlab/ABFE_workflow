@@ -45,10 +45,6 @@ jobs:
       - name: "Install"
         run: pip install .
 
-      - name: "Test imports"
-        run: |
-          conda activate abfe; python -Ic "import abfe"
-
       - name: "Test CLI abfe"
         run: |
           conda activate abfe; cli-abfe -h
@@ -57,3 +53,6 @@ jobs:
         run: |
           conda activate abfe; cli-abfe-gmx -h
           
+      - name: "Test imports"
+        run: |
+          conda activate abfe; python -Ic "import abfe"
