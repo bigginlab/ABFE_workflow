@@ -1,4 +1,4 @@
-name: Python build Package using Conda
+name: build-package
 
 on:
   pull_request:
@@ -28,7 +28,7 @@ jobs:
           - "<3.12"
         include:
           - os: 'macos'
-            python-version: "3.11" 
+            python-version: "<3.12" 
 
     steps:
       - uses: actions/checkout@v4
