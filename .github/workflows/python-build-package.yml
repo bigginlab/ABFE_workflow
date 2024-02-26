@@ -43,16 +43,16 @@ jobs:
             python=${{ matrix.python-version }}
 
       - name: "Install"
-        run: pip install .
+        run: pip install --no-deps .
 
       - name: "Test CLI abfe"
         run: |
-          conda activate abfe; cli-abfe -h
+          cli-abfe -h
 
       - name: "Test CLI abfe-gmx"
         run: |
-          conda activate abfe; cli-abfe-gmx -h
+          cli-abfe-gmx -h
           
       - name: "Test imports"
         run: |
-          conda activate abfe; python -Ic "import abfe"
+          python -Ic "import abfe"
