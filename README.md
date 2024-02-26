@@ -96,6 +96,8 @@ Alternativley you can provide gromacs input files and use the command line tool 
         * complex.gro
         * complex.top
         ...
+          
+Checkout the example folder for more clarity on the structures.
 
 ### Install:
 The package can be installed like the following script:
