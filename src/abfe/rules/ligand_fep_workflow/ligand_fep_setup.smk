@@ -13,6 +13,8 @@ rule fep_setup_ligand:
         equil_gro=run_path+"/ligand/equil-mdsim/npt_equil2/npt_equil2.gro",
     params:
         sim_dir=run_path+"/ligand/fep",
+        feptop_dir=run_path+"/ligand/fep/fep-topology",
+
         vdw_windows=n_vdw_windows,
         vdw_range=" ".join(map(str, lam_vdw_range)),
         coul_windows=n_coul_windows,
@@ -28,20 +30,35 @@ rule fep_setup_ligand:
         fep_gro=run_path+"/ligand/fep/fep-topology/equil.gro"
     shell:
         '''
+            set -e
+
+            echo "build initial dirs"
             mkdir -p {params.sim_dir}/template
+            mkdir -p {params.sim_dir}/fep-topology
             cp -r {params.template_dir}/template/* {params.sim_dir}/template
-
             cp -r {input.ligand_top}/* {params.sim_dir}/fep-topology
-            cp {input.equil_gro} {params.sim_dir}/fep-topology/equil.gro
+            
+            echo "center equil sim"
+            echo "0" | gmx trjconv -s {params.feptop_dir}/ligand.gro -f {input.equil_gro} -o {params.feptop_dir}/whole.gro -pbc whole
+            echo "0" | gmx trjconv -s {params.feptop_dir}/ligand.gro -f {params.feptop_dir}/whole.gro -o {params.feptop_dir}/nojump.gro -pbc nojump
+            echo "1 0" | gmx trjconv -s {params.feptop_dir}/ligand.gro -f {params.feptop_dir}/nojump.gro -o {output.fep_gro} -pbc mol -center -ur compact
+            rm {params.feptop_dir}/whole.gro {params.feptop_dir}/nojump.gro
 
+            
             # create simulation directory
+            echo "build simulation dirs:"
             mkdir -p {params.sim_dir}/simulation
            
             let max_window={params.vdw_windows}
             for i in $(seq 0 $((max_window-1)))
             do
+                echo "build simulation dirs: mk"
                 mkdir -p {params.sim_dir}/simulation/vdw.${{i}}
-                cp -r {params.sim_dir}/template/vdw/* {params.sim_dir}/simulation/vdw.${{i}}
+                
+                echo "build simulation dirs: cp"
+                cp -rf {params.sim_dir}/template/vdw/* {params.sim_dir}/simulation/vdw.${{i}}
+                
+                echo "build simulation dirs: sed"
                 sed -i "s/<state>/${{i}}/g" {params.sim_dir}/simulation/vdw.${{i}}/*/*.mdp
                 sed -i "s/<lamRange>/{params.vdw_range}/g" {params.sim_dir}/simulation/vdw.${{i}}/*/*.mdp
             done
@@ -50,7 +67,7 @@ rule fep_setup_ligand:
             for i in $(seq 0 $((max_window-1)))
             do
                 mkdir -p {params.sim_dir}/simulation/coul.${{i}}
-                cp -r {params.sim_dir}/template/coul/* {params.sim_dir}/simulation/coul.${{i}}
+                cp -rf {params.sim_dir}/template/coul/* {params.sim_dir}/simulation/coul.${{i}}
                 sed -i "s/<state>/${{i}}/g" {params.sim_dir}/simulation/coul.${{i}}/*/*.mdp
                 sed -i "s/<lamRange>/{params.coul_range}/g" {params.sim_dir}/simulation/coul.${{i}}/*/*.mdp
             done
