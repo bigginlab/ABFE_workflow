@@ -2,7 +2,7 @@
 
 import glob
 import argparse
-
+import json
 from abfe import calculate_abfe
 from abfe.template import default_slurm_config_path
 
@@ -56,7 +56,7 @@ def main():
                          n_cores_per_job=args.number_of_cpus_per_ligand_job, num_jobs_per_ligand=args.number_of_parallel_ligand_jobs,
                          num_jobs_receptor_workflow=args.number_of_parallel_receptor_jobs,
                          num_replicas=args.number_of_replicates,
-                         submit=args.nosubmit, use_gpu=not bool(args.nogpu), hybrid_job=not bool(args.nohybrid), small_mol_ff=args.small_mol_ff,
+                         submit=not bool(args.nosubmit), use_gpu=not bool(args.nogpu), hybrid_job=not bool(args.nohybrid), small_mol_ff=args.small_mol_ff,
                          cluster_config=cluster_config)
 
     return res
