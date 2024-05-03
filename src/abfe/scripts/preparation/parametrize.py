@@ -49,7 +49,9 @@ def parameterize(input_molecule, output_dir, hmr=False, input_molecule_name="MOL
         interchange.to_gro(os.path.join(dir_name, "out.gro"))
         interchange.to_top(os.path.join(dir_name, "out.top"))
         interchange.to_prmtop(pmd_top_file)
-
+	
+	# Define the path to the gro file
+        gro_coord_file = os.path.join(dir_name, "out.gro")
     elif(ff=="gaff"):
         # input
         system = BSS.IO.readMolecules(input_molecule)
