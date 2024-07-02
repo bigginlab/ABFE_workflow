@@ -1,7 +1,10 @@
 # ABFE_workflow
 [![build-package](https://github.com/bigginlab/ABFE_workflow/actions/workflows/build-package.yml/badge.svg)](https://github.com/bigginlab/ABFE_workflow/actions/workflows/build-package.yml)
 
+
 A snakemake based workflow for ABFE calculations using GMX. The workflow can be scaled on Slurm Queuing systems.
+Checkout our publication: [Ries, B; Alibay, I.; N. M. Anand; Magarkar, A.; Biggin, P. C. Automated Absolute Binding Free Energy Calculation Workflow for Drug Discovery. J. Chem. Inf. Model. 2024](https://doi.org/10.1021/acs.jcim.4c00343)
+
 The here provided Cyclophilin D Test systems and experimental values originate from:
 * [Alibay, I.; Magarkar, A.; Seeliger, D.; Biggin, P. C. Evaluating the use of absolute binding
 free energy in the fragment optimisation process. Communications Chemistry 2022, 5,
