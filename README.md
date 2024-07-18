@@ -111,3 +111,7 @@ The package can be installed like the following script:
   pip install .
 ```
 
+
+
+## HPC Configs:
+ for the HPC configurations you should consult thefollowing file: https://github.com/bigginlab/ABFE_workflow/blob/5619e0c2d735569725e9e39e7c565eacbd681cfd/src/abfe/template/cluster_configs/default_slurm_template.json
