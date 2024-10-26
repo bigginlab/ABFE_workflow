@@ -53,6 +53,7 @@ jobs:
             python=${{ matrix.python-version }}
             
       - name: Set micromamba to use classic solver
+        # Fails if not set (PCB)
         run: micromamba config set solver classic        
 
       - name: "Install"
