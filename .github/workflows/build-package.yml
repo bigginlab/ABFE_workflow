@@ -51,6 +51,9 @@ jobs:
           cache-downloads-key: downloads-${{ steps.date.outputs.date }}
           create-args: >-
             python=${{ matrix.python-version }}
+            
+      - name: Set micromamba to use classic solver
+        run: micromamba config set solver classic        
 
       - name: "Install"
         run: pip install --no-deps .
