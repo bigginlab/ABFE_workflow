@@ -97,7 +97,7 @@ def main():
         "-nosubmit",
         help="Will automatically submit the ABFE calculations",
         required=False,
-        action="store_false",
+        action="store_true",
     )
     parser.add_argument(
         "-nogpu",
