@@ -6,6 +6,7 @@ from scipy import constants as const
 
 boltzman_const = const.Boltzmann * const.Avogadro  # J/(K)^-1 * mol^-1 = J/(K*mol)^-1
 
+
 def IC50_to_dG(ic50s: Union[Number, np.array], temperature: float = 298) -> np.array:
     """_summary_
 
@@ -22,7 +23,4 @@ def IC50_to_dG(ic50s: Union[Number, np.array], temperature: float = 298) -> np.a
     return dGs
 
 
-print(IC50_to_dG(np.array([100/
-                           /0, 100, 10, 1, 0.46, 0.01, 0.001]))/4.18)
-
-
+print(IC50_to_dG(np.array([1000, 100, 10, 1, 0.46, 0.01, 0.001])) / 4.18)

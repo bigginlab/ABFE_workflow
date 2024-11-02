@@ -1,6 +1,7 @@
 """
 calculate dF for ligand system
 """
+
 import math
 import os
 import warnings
@@ -11,9 +12,14 @@ from alchemlyb.parsing.gmx import extract_dHdl, extract_u_nk
 from alchemlyb.preprocessing import statistical_inefficiency, slicing
 
 
-def run_alchemlyb(xvgs: list, overlap_path: str = None, lower: int = None,
-                  upper: int = None, min_samples: int = 500,
-                  temperature: float = 298.15):
+def run_alchemlyb(
+    xvgs: list,
+    overlap_path: str = None,
+    lower: int = None,
+    upper: int = None,
+    min_samples: int = 500,
+    temperature: float = 298.15,
+):
     """
     Function to get MBAR and TI estimates using alchemlyb from an input set of
     xvgs
@@ -64,31 +70,47 @@ def run_alchemlyb(xvgs: list, overlap_path: str = None, lower: int = None,
 
     print(f"number of samples per window: {[int(len(df) / i) for i in sub_steps]}")
 
-    dhdls = pd.concat([slicing(extract_dHdl(xvg, T=temperature), lower=lower,
-                               upper=upper, step=step)
-                       for xvg, step in zip(xvgs, sub_steps)])
-    u_nks = pd.concat([slicing(extract_u_nk(xvg, T=temperature), lower=lower,
-                               upper=upper, step=step)
-                       for xvg, step in zip(xvgs, sub_steps)])
+    dhdls = pd.concat(
+        [
+            slicing(
+                extract_dHdl(xvg, T=temperature), lower=lower, upper=upper, step=step
+            )
+            for xvg, step in zip(xvgs, sub_steps)
+        ]
+    )
+    u_nks = pd.concat(
+        [
+            slicing(
+                extract_u_nk(xvg, T=temperature), lower=lower, upper=upper, step=step
+            )
+            for xvg, step in zip(xvgs, sub_steps)
+        ]
+    )
 
     ti = TI().fit(dhdls)
     mbar = MBAR(maximum_iterations=1000000).fit(u_nks)
 
-    deltaG = {'MBAR': (mbar.delta_f_.iloc[0, -1] * 0.593,
-                       mbar.d_delta_f_.iloc[0, -1] * 0.593),
-              'TI': (ti.delta_f_.iloc[0, -1] * 0.593,
-                     ti.d_delta_f_.iloc[0, -1] * 0.593)}
+    deltaG = {
+        "MBAR": (
+            mbar.delta_f_.iloc[0, -1] * 0.593,
+            mbar.d_delta_f_.iloc[0, -1] * 0.593,
+        ),
+        "TI": (ti.delta_f_.iloc[0, -1] * 0.593, ti.d_delta_f_.iloc[0, -1] * 0.593),
+    }
 
     return deltaG
 
 
-def analyze_ligand(prefix: str,
-                   system_steps_windows: dict,
-                   system_name: str = "test",
-                   xvg_prefix: str = 'dhdl',
-                   lower: int = None, upper: int = None,
-                   min_samples: int = None,
-                   temperature: float = 298.15) -> pd.DataFrame:
+def analyze_ligand(
+    prefix: str,
+    system_steps_windows: dict,
+    system_name: str = "test",
+    xvg_prefix: str = "dhdl",
+    lower: int = None,
+    upper: int = None,
+    min_samples: int = None,
+    temperature: float = 298.15,
+) -> pd.DataFrame:
     """
     Function to run an FEP analysis for an FEP cycle
 
@@ -114,23 +136,38 @@ def analyze_ligand(prefix: str,
     system_results = {}
 
     for step, windows in system_steps_windows.items():
-        xvgs = [f'{prefix}/{step}/{xvg_prefix}.{i}.xvg'
-                for i in range(windows)]
+        xvgs = [f"{prefix}/{step}/{xvg_prefix}.{i}.xvg" for i in range(windows)]
 
         # check if all windows present:
         for xvg_path in xvgs:
-            if (not os.path.exists(xvg_path)):
-                raise IOError("Expected xvg-path: ", xvg_path + " \n as there should be " + str(windows) + " windows")
-        dG = run_alchemlyb(xvgs, lower=lower, upper=upper,
-                           min_samples=min_samples, temperature=temperature)
-        ddG_estimator = abs(dG['MBAR'][0] - dG['TI'][0])
+            if not os.path.exists(xvg_path):
+                raise IOError(
+                    "Expected xvg-path: ",
+                    xvg_path + " \n as there should be " + str(windows) + " windows",
+                )
+        dG = run_alchemlyb(
+            xvgs,
+            lower=lower,
+            upper=upper,
+            min_samples=min_samples,
+            temperature=temperature,
+        )
+        ddG_estimator = abs(dG["MBAR"][0] - dG["TI"][0])
 
         if ddG_estimator > 0.5:
-            wmsg = (f'ddG_estimator > 0.5 kcal/mol: {ddG_estimator} '
-                    f'{prefix}/{step}')
+            wmsg = f"ddG_estimator > 0.5 kcal/mol: {ddG_estimator} " f"{prefix}/{step}"
             warnings.warn(wmsg)
 
-        system_results.update({step.replace("-xvg", ""): {"MBAR": dG['MBAR'][0], "TI": dG['TI'][0], "sys": system_name, "windows": windows}})
+        system_results.update(
+            {
+                step.replace("-xvg", ""): {
+                    "MBAR": dG["MBAR"][0],
+                    "TI": dG["TI"][0],
+                    "sys": system_name,
+                    "windows": windows,
+                }
+            }
+        )
         df = pd.DataFrame(system_results)
 
     return df
