@@ -69,5 +69,5 @@ Snakemake
 
 #temp test out
 examples/CyclophilinD_data/abfe/
-examples/abfe_out*
+examples/abfe_*out*
 /src/abfe/_version.py
