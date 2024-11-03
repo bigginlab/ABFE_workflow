@@ -33,19 +33,24 @@ def main():
 
     args = parser.parse_args()
 
-    if args.nosubmit:
-        cluster_config = None
-    else:
-        if args.nogpu:
-            cluster_config = json.load(open(f"{default_slurm_config_path}", "r"))
-            cluster_config["Snakemake_job"]["queue_job_options"]["cpus-per-task"] = int(args.number_of_parallel_receptor_jobs)
-            cluster_config["Sub_job"]["queue_job_options"]["cpus-per-task"] = int(args.number_of_parallel_ligand_jobs)
+    if args.nogpu:
+        cluster_config = json.load(open(f"{default_slurm_config_path}", "r"))
+        cluster_config["Snakemake_job"]["queue_job_options"]["cpus-per-task"] = int(
+            args.number_of_parallel_receptor_jobs
+        )
+        cluster_config["Sub_job"]["queue_job_options"]["cpus-per-task"] = int(
+            args.number_of_parallel_ligand_jobs
+        )
 
-        else:
-            cluster_config = json.load(open(f"{default_slurm_config_path}", "r"))
-            cluster_config["Snakemake_job"]["queue_job_options"]["cpus-per-task"] = int(args.number_of_parallel_receptor_jobs)
-            cluster_config["Sub_job"]["queue_job_options"]["cpus-per-task"] = int(args.number_of_parallel_ligand_jobs)
-            cluster_config["Sub_job"]["queue_job_options"]["partition"] = "gpu"
+    else:
+        cluster_config = json.load(open(f"{default_slurm_config_path}", "r"))
+        cluster_config["Snakemake_job"]["queue_job_options"]["cpus-per-task"] = int(
+            args.number_of_parallel_receptor_jobs
+        )
+        cluster_config["Sub_job"]["queue_job_options"]["cpus-per-task"] = int(
+            args.number_of_parallel_ligand_jobs
+        )
+        cluster_config["Sub_job"]["queue_job_options"]["partition"] = "gpu"
 
     print(args.gmx_files_root_dir)
 
