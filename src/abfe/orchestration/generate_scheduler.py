@@ -60,8 +60,9 @@ class scheduler():
             dependency_value = cluster_config["queue_dependency"]["value"]
             dependency_sep = cluster_config["queue_dependency"]["sep"]
 
-            deps = (f"--{dependency_key}={dependency_value}{dependency_sep}" + dependency_sep.join(["${jobID" + str(i) + "}(" for i in range(len(
-                self.out_job_path))]))
+            deps = (f"--{dependency_key}={dependency_value}{dependency_sep}" +
+                    dependency_sep.join([f"${{jobID{i}}}" for i in range(len(self.out_job_path))]))
+
             file_str.append("\n")
             file_str.append("echo " + ":".join(["${jobID" + str(i) + "}" for i in range(len(self.out_job_path))]))
             file_str.append(cluster_config["queue_submission_cmd"] + " " + cluster_options + " " + deps + " " + self._final_job_path)
