@@ -26,7 +26,7 @@ def main():
     parser.add_argument('-njl', "--number_of_parallel_ligand_jobs", help='Number of jobs in parallel for ligand workflow', required=False, default=40, type=int)
     parser.add_argument('-ncl', "--number_of_cpus_per_ligand_job", help='Number of cpus per ligand job', required=False, default=8, type=int)
     parser.add_argument('-sff', "--small_mol_ff", help='Force Field used for small mols', required=False, default="gaff", type=str)
-    parser.add_argument('-nosubmit', help='Will automatically submit the ABFE calculations', required=False, action='store_false')
+    parser.add_argument('-nosubmit', help='Will automatically submit the ABFE calculations', required=False, action='store_true')
     parser.add_argument('-nogpu', help='shall gpus be used for the submissions? WARNING: Currently Not working', required=False, action='store_true')
     parser.add_argument('-nohybrid', help='hybrid flag executes complex jobs on gpu and ligand jobs on cpu (requires gpu flag) WARNING: Currently Not working',
                         required=False,
