@@ -8,22 +8,25 @@ gromacs_cont_script=config['gmx_cont_kernel_path']
 
 rule equil_run_ligand_emin:
     input:
-        top=run_path+"/ligand/topology/ligand.top",
-        gro=run_path+"/ligand/topology/ligand.gro"
+        top = run_path + "/ligand/topology/ligand.top",
+        gro = run_path + "/ligand/topology/ligand.gro",
+        mdp = run_path + "/emin.mdp"
     params:
-        nthreads=num_sim_threads,
-        run_dir=run_path+"/ligand/equil-mdsim/emin",
-        gmx_template=gromacs_run_script
+        nthreads = num_sim_threads,
+        run_dir  = run_path + "/ligand/equil-mdsim/emin",
+        gmx_template = gromacs_run_script
     output:
-        gro=run_path+"/ligand/equil-mdsim/emin/emin.gro"
+        gro = run_path + "/ligand/equil-mdsim/emin/emin.gro"
     threads: num_sim_threads
     shell:
-        '''
+        r'''
             set -e
             cd {params.run_dir}
-            cp {params.gmx_template} ./job_emin.sh   
+
+            cp {params.gmx_template} ./job_emin.sh
             chmod +x ./job_emin.sh
-            ./job_emin.sh {params.nthreads} emin {input.top} {input.gro}
+
+            ./job_emin.sh {params.nthreads} emin {input.top} {input.gro} {input.mdp}
         '''
 
 rule equil_run_ligand_nvt_heat:
