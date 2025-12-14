@@ -21,6 +21,7 @@ rule fep_ana_gather_complex_xvg:
         coul_max_windows=n_coul_windows
     output:
         xvg_dir=directory(run_path+"/complex/fep/ana/xvgs")
+    threads: 1
     shell:
         '''
             mkdir -p {params.ana_loc}/xvgs/restraints-xvg
@@ -59,6 +60,7 @@ rule fep_ana_get_dg_complex:
         script_dir = scripts.root_path
     output:
         complex_var=run_path+"/complex/fep/ana/dg_results.tsv"
+    threads: 1
     shell:
         "python {params.script_dir}/free_energy/calculate_ABFE_transformation_dG.py --xvg_path {input.xvg_dir}  --conf_path {params.conf_path} --out_path {params.out_dir} --boresch_data {input.boresch_dat} --system_name complex"
 
