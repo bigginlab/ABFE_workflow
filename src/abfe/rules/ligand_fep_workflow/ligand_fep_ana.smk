@@ -18,6 +18,7 @@ rule fep_ana_gather_ligand_xvg:
         coul_max_windows=n_coul_windows
     output:
         xvg_dir=directory(run_path+"/ligand/fep/ana/xvgs")
+    threads: 1
     shell:
         '''
             mkdir -p {params.ana_loc}/xvgs/vdw-xvg
@@ -47,6 +48,7 @@ rule fep_ana_get_dg_ligand:
         script_dir=scripts.root_path
     output:
         complex_var=run_path+"/ligand/fep/ana/dg_results.tsv"
+    threads: 1
     shell:
         '''
                 set -e
