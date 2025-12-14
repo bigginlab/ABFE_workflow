@@ -10,7 +10,7 @@ rule equil_run_ligand_emin:
     input:
         top = run_path + "/ligand/topology/ligand.top",
         gro = run_path + "/ligand/topology/ligand.gro",
-        mdp = run_path + "/emin.mdp"
+        mdp = run_path + "/ligand/equil-mdsim/emin/emin.mdp"
     params:
         nthreads = num_sim_threads,
         run_dir  = run_path + "/ligand/equil-mdsim/emin",
