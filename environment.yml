@@ -1,4 +1,4 @@
-name: abfe
+name: abfe_bi_11dec
 channels:
   - bioconda
   - openbiosim
