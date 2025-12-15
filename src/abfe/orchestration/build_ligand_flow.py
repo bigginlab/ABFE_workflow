@@ -84,6 +84,8 @@ def build_replicas_simulation_flow(
             out_dir_path=out_replica_path, cluster_config=cluster_config
         )
         # In a use_gpu and hybrid_job setting, we use cpu for ligand and gpu for complex
+        print("Use GPU: ", use_gpu)
+        print("Hybrid Job: ", hybrid_job)
         if use_gpu and hybrid_job:
             job_configs = [
                 {
@@ -101,6 +103,14 @@ def build_replicas_simulation_flow(
                     "gpu": True,
                     "snake_job": "fep_ana_get_dg_complex",
                     "job_name_suffix": "job_complex.sh",
+                },
+                {
+                    "subdir": ".",
+                    "snake_file_name": "Snakefile.smk",
+                    "conf_file_name": "snake_conf.json",
+                    "gpu": False,
+                    "snake_job": None,  # Default target
+                    "job_name_suffix": "job.sh",
                 },
             ]
         else:
@@ -120,25 +130,20 @@ def build_replicas_simulation_flow(
         for config in job_configs:
             # Determine paths
             if config["subdir"] == ".":
+                print("Using global snake file")
                 current_process_path = out_replica_path
-                snake_path = config["snake_file_name"]
-                conf_file_path = config["conf_file_name"]
             else:
+                print("Using subdirectory snake file")
                 current_process_path = os.path.join(out_replica_path, config["subdir"])
-                if not os.path.exists(current_process_path):
-                    os.mkdir(current_process_path)
-                snake_path = os.path.join(
-                    current_process_path, config["snake_file_name"]
-                )
-                conf_file_path = os.path.join(
-                    current_process_path, config["conf_file_name"]
-                )
 
-                # For subdirs, we need to generate specific snakefiles.
-                # Use global confiuration for template filling
-                generate_snake.generate_snake_file(
-                    out_file_path=snake_path, conf_file_path=conf_path
-                )
+            os.makedirs(current_process_path, exist_ok=True)
+            snake_path = os.path.join(current_process_path, config["snake_file_name"])
+            conf_file_path = os.path.join(
+                current_process_path, config["conf_file_name"]
+            )
+            generate_snake.generate_snake_file(
+                out_file_path=snake_path, conf_file_path=conf_path
+            )
 
             # Generate configuration for this strand
             std_cont_key = (
