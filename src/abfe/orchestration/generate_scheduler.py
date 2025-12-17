@@ -3,147 +3,247 @@ import os
 import stat
 import copy
 import subprocess
+from pathlib import Path
+
 from abfe.template import default_slurm_config_path
 
-class scheduler():
 
-    def __init__(self, out_dir_path: str, n_cores: int = 1, time: str = "96:00:00", partition:str="cpu", cluster_config:dict={}) -> None:
-        self.n_cores = n_cores
+class scheduler:
+    def __init__(
+        self,
+        out_dir_path: str,
+        cluster_config: dict = {},
+    ) -> None:
         self.out_dir_path = out_dir_path
-        self.out_job_path = out_dir_path + "/job.sh"
-        self.out_scheduler_path = out_dir_path + "/scheduler.sh"
-        self.time = time
-        self.partition = partition
-        self.def_cluster_config  = json.load(open(f"{default_slurm_config_path}", "r"))
-
+        self.out_dir = Path(out_dir_path)
+        # We assume out_job_path can change or be a list later, but start as a string path default
+        self.out_job_path = str(self.out_dir / "job.sh")
+        self.out_scheduler_path = str(self.out_dir / "scheduler.sh")
         self.cluster_config = cluster_config
-        if(cluster_config is not None):
-            for big_key, small_keys in self.def_cluster_config.items():
-                if(big_key in self.cluster_config):
-                    for def_key, def_val in small_keys.items():
-                        if (def_key not in self.cluster_config[big_key]):
-                            self.cluster_config[big_key][def_key] = def_val
-                else:
-                    self.cluster_config[big_key] = small_keys
+        # Internal tracking for a final job, used in complex workflows
+        self._final_job_path = None
 
     def generate_scheduler_file(self, out_prefix):
-        if (isinstance(self.out_job_path, str)):
-            self.out_job_path = [self.out_job_path]
+        # 1. Normalize job paths to list
+        job_paths = self.out_job_path
+        if isinstance(job_paths, str):
+            job_paths = [job_paths]
 
-        file_str = [
-            "#!/bin/env bash",
-            "",
-        ]
-        #SnakeMake Scheduler File:
-        cluster_config = copy.deepcopy(self.cluster_config["Snakemake_job"])
+        # 2. Extract configuration
+        # Base config for the scheduler wrapper job itself (often runs on login node or light queue)
+        sched_config = copy.deepcopy(self.cluster_config.get("Snakemake_job", {}))
+        submission_cmd = sched_config.get("queue_submission_cmd", "sbatch")
 
-        for i, job_path in enumerate(self.out_job_path):
-            basename = os.path.basename(job_path).replace(".sh", "")
+        # 3. Build Script Content
+        script_content = ["#!/bin/env bash", ""]
 
-            cluster_config["queue_job_options"]["job-name"] = str(out_prefix) + "_" + str(basename) + "_scheduler "
-            cluster_options = " ".join(["--" + key + "=" + str(val) + " " for key, val in cluster_config["queue_job_options"].items()])
+        job_ids_variable_names = []
 
-            file_str.extend([
-                "",
-                "cd " + os.path.dirname(job_path),
-                "job" + str(i) + "=$(" + cluster_config["queue_submission_cmd"] + " " + cluster_options + job_path + ")",
-                "jobID" + str(i) + "=$(echo $job" + str(i) + " | awk '{print $4}')",
-                "echo \"${jobID" + str(i) + "}\"",
-            ])
+        for i, job_path in enumerate(job_paths):
+            job_path_obj = Path(job_path)
+            # e.g., "job" from "job.sh"
+            basename = job_path_obj.stem.replace(".sh", "")
 
-        if (len(self.out_job_path) > 1):
-            cluster_config = copy.deepcopy(self.cluster_config["Snakemake_job"])
-            cluster_config["job-name"] = str(out_prefix) + "_final_ana_scheduler "
-            cluster_options = " ".join(["--" + key + "=" + str(val) + " " for key, val in cluster_config["queue_job_options"].items()])
+            # Config for this particular submission step
+            # We assume we use the same queue options as the base scheduler config
+            # but with a modified job name.
+            current_job_config = copy.deepcopy(sched_config)
+            current_job_options = current_job_config.get("queue_job_options", {})
+            current_job_options["job-name"] = f"{out_prefix}_{basename}_scheduler"
 
-            dependency_key = cluster_config["queue_dependency"]["key"]
-            dependency_value = cluster_config["queue_dependency"]["value"]
-            dependency_sep = cluster_config["queue_dependency"]["sep"]
+            # Create option flags: --key=val
+            options_str = " ".join(
+                [f"--{k}={v}" for k, v in current_job_options.items()]
+            )
 
-            deps = (f"--{dependency_key}={dependency_value}{dependency_sep}" +
-                    dependency_sep.join([f"${{jobID{i}}}" for i in range(len(self.out_job_path))]))
+            # Shell commands to submit and capture ID
+            var_name = f"jobID{i}"
+            job_ids_variable_names.append(var_name)
 
-            file_str.append("\n")
-            file_str.append("echo " + ":".join(["${jobID" + str(i) + "}" for i in range(len(self.out_job_path))]))
-            file_str.append(cluster_config["queue_submission_cmd"] + " " + cluster_options + " " + deps + " " + self._final_job_path)
+            script_content.append("")
+            script_content.append(f"cd {os.path.dirname(job_path)}")
+            # Submit and capture output, then parse ID (assuming 4th word is ID, standard Slurm)
+            script_content.append(
+                f"job{i}=$({submission_cmd} {options_str} {job_path})"
+            )
+            script_content.append(f"{var_name}=$(echo $job{i} | awk '{{print $4}}')")
+            script_content.append(f'echo "${{{var_name}}}"')
 
-        file_str = "\n".join(file_str)
-        file_io = open(self.out_scheduler_path, "w")
-        file_io.write(file_str)
-        file_io.close()
-        os.chmod(self.out_scheduler_path, stat.S_IRWXU + stat.S_IRGRP + stat.S_IXGRP + stat.S_IROTH + stat.S_IXOTH)
+        # 4. Handle Final Dependency Job (if applicable)
+        # If there are multiple jobs (e.g. ligand + complex), we schedule a final job that depends on them
+        if len(job_paths) > 1 and getattr(self, "_final_job_path", None):
+            final_job_config = copy.deepcopy(sched_config)
+            final_job_config["queue_job_options"]["job-name"] = (
+                f"{out_prefix}_final_ana_scheduler"
+            )
+
+            final_opts_str = " ".join(
+                [
+                    f"--{k}={v}"
+                    for k, v in final_job_config.get("queue_job_options", {}).items()
+                ]
+            )
+
+            # Dependency logic
+            dep_info = final_job_config.get("queue_dependency", {})
+            dep_key = dep_info.get("key", "dependency")
+            dep_val = dep_info.get("value", "afterok")
+            dep_sep = dep_info.get("sep", ":")
+
+            # Construct dependency string (e.g. --dependency=afterok:123:124)
+            ids_str = dep_sep.join([f"${{{var}}}" for var in job_ids_variable_names])
+            dep_flag = f"--{dep_key}={dep_val}{dep_sep}{ids_str}"
+
+            script_content.append("\n")
+            # Echo all IDs together
+            all_ids_echo = ":".join([f"${{{var}}}" for var in job_ids_variable_names])
+            script_content.append(f'echo "{all_ids_echo}"')
+
+            # Submit final job
+            script_content.append(
+                f"{submission_cmd} {final_opts_str} {dep_flag} {self._final_job_path}"
+            )
+
+        # 5. Write to file
+        file_content = "\n".join(script_content)
+        with open(self.out_scheduler_path, "w") as f:
+            f.write(file_content)
+
+        # 6. Make executable
+        st = os.stat(self.out_scheduler_path)
+        os.chmod(self.out_scheduler_path, st.st_mode | stat.S_IEXEC)
 
         return self.out_scheduler_path
 
-    def generate_job_file(self, out_prefix, cluster_conf_path: str = None, cluster_config: dict = None, cluster=False,
-                          num_jobs: int = 1, latency_wait: int = 1000, snake_file_path=None, snake_job=""):
+    def generate_job_file(
+        self,
+        out_prefix,
+        cluster_conf_path: str = None,
+        cluster_config: dict = None,
+        cluster=False,
+        num_jobs: int = 1,
+        latency_wait: int = 1000,
+        snake_file_path=None,
+        snake_job="",
+    ):
+        # 1. Update snake job string if file path provided
+        if snake_file_path is not None:
+            snake_job = f" -s {snake_file_path} {snake_job}"
 
-        if (snake_file_path is not None):
-            snake_job = " -s "+snake_file_path+" " + snake_job
+        script_content = []
 
-        if (cluster and self.cluster_config is not None and cluster_conf_path is not None):
-            root_dir = os.path.dirname(cluster_conf_path)
-            slurm_logs = os.path.dirname(cluster_conf_path) + "/slurm_logs"
-            if (not os.path.exists(slurm_logs)):
-                os.mkdir(slurm_logs)
+        # 2. Case: Cluster Submission (Snakemake submits to Slurm)
+        if cluster and self.cluster_config and cluster_conf_path:
+            # Prepare paths
+            cluster_conf_path_obj = Path(cluster_conf_path)
+            root_dir = cluster_conf_path_obj.parent
+            slurm_logs = root_dir / "slurm_logs"
+            if not slurm_logs.exists():
+                slurm_logs.mkdir()
 
-            if (out_prefix == ""):
-                name = str(out_prefix) + "{name}.{jobid}"
-                log = slurm_logs + "/" + str(out_prefix) + "{name}_{jobid}"
+            # Prepare job naming
+            if out_prefix:
+                job_name = str(out_prefix)
+                log_base = str(slurm_logs / out_prefix)
             else:
-                name = str(out_prefix) + ".{name}.{jobid}"
-                log = slurm_logs + "/" + str(out_prefix) + "_{name}_{jobid}"
+                job_name = "job"
+                log_base = str(slurm_logs / "job")
 
-            cluster_config = copy.deepcopy(self.cluster_config["Sub_job"])
-            cluster_config["queue_job_options"].update({
-                "cpus-per-task": '{threads}',
-                "cores-per-socket": '{threads}',
-                "chdir": root_dir,
-                "job-name": "\\\"" + name + "\\\"",
-                "output": "\\\"" + log + ".out\\\"",
-                "error": "\\\"" + log + ".err\\\""
-            })
+            # Create cluster config for this specific run
+            sub_job_config = copy.deepcopy(self.cluster_config.get("Sub_job", {}))
+            queue_opts = sub_job_config.get("queue_job_options", {})
 
-            json.dump(self.cluster_config["Sub_job"]["queue_job_options"], open(cluster_conf_path, "w"), indent="  ")
-            cluster_options = " ".join(["--" + key + "=" + str(val) + " " for key, val in cluster_config["queue_job_options"].items()]) + " --parsable"
+            # Update typical Slurm fields
+            # Using escaped quotes pattern from original code
+            queue_opts.update(
+                {
+                    "chdir": str(root_dir),
+                    "job-name": f'\\"{job_name}\\"',
+                    "output": f'\\"{log_base}.out\\"',
+                    "error": f'\\"{log_base}.err\\"',
+                }
+            )
 
-            status_script_path = self.cluster_config["Sub_job"]["queue_status_script"]
+            # Write cluster.json
+            with open(cluster_conf_path, "w") as f:
+                json.dump(queue_opts, f, indent="  ")
 
-            # TODO: change this here, such each job can access resource from cluster-config!
-            file_str = "\n".join([
-                "#!/bin/env bash",
-                "snakemake --cluster \"" + cluster_config["queue_submission_cmd"] + " " + cluster_options + "\" "
-                            "--cluster-config " + cluster_conf_path + " "
-                             "--cluster-status " + status_script_path + " "
-                             "--cluster-cancel \""+cluster_config["queue_abort_cmd"]+"\" "
-                             "--jobs " + str(num_jobs) + " --latency-wait " + str(latency_wait) + " "
-                             "--rerun-incomplete " + snake_job +" 1>  "+ str(out_prefix)+".out 2>"+ str(out_prefix)+".err"
-            ])
-        elif (cluster):
-            raise ValueError("give cluster conf! ")
+            # Construct Snakemake's cluster submission command
+            # This is the command snakemake will call for EACH job.
+            submission_cmd = sub_job_config.get("queue_submission_cmd", "sbatch")
+            abort_cmd = sub_job_config.get("queue_abort_cmd", "scancel")
+            status_script = sub_job_config.get("queue_status_script")
+
+            # Options for the cluster command
+            cluster_opts_str = " ".join([f"--{k}={v}" for k, v in queue_opts.items()])
+            cluster_opts_str += " --parsable"
+
+            cmd_parts = [
+                "snakemake",
+                f'--cluster "{submission_cmd} {cluster_opts_str}"',
+                f"--cluster-config {cluster_conf_path}",
+            ]
+
+            if status_script:
+                cmd_parts.append(f"--cluster-status {status_script}")
+
+            cmd_parts.extend(
+                [
+                    f'--cluster-cancel "{abort_cmd}"',
+                    f"--jobs {num_jobs}",
+                    f"--latency-wait {latency_wait}",
+                    "--rerun-incomplete",
+                    snake_job.strip(),
+                    f"1> {out_prefix}.out",
+                    f"2> {out_prefix}.err",
+                ]
+            )
+
+            script_content = ["#!/bin/env bash", " ".join(cmd_parts)]
+
+        # 3. Case: Local Execution
+        elif not cluster:
+            cmd = (
+                f"snakemake -c -j {num_jobs} "
+                f"--latency-wait {latency_wait} "
+                "--rerun-incomplete "
+                f"{snake_job}"
+            )
+            script_content = ["#!/bin/env bash", cmd]
+
+        # 4. Case: Invalid State
         else:
+            # If cluster=True but no config provided, previous code raised error
+            raise ValueError(
+                "Cluster requested but no configuration or path available!"
+            )
 
-            file_str = "\n".join([
-                "#!/bin/env bash",
-                "snakemake -c " + str(self.n_cores) + " -j "+str(num_jobs)+" --latency-wait " + str(
-                    latency_wait) + " --rerun-incomplete " + snake_job
-            ])
+        # 5. Write Job File
+        with open(self.out_job_path, "w") as f:
+            f.write("\n".join(script_content))
 
-        file_io = open(self.out_job_path, "w")
-        file_io.write(file_str)
-        file_io.close()
-        os.chmod(self.out_job_path, stat.S_IRWXU + stat.S_IRGRP + stat.S_IXGRP + stat.S_IROTH + stat.S_IXOTH)
+        # Make executable
+        st = os.stat(self.out_job_path)
+        os.chmod(self.out_job_path, st.st_mode | stat.S_IEXEC)
 
         return self.out_job_path
 
     def schedule_run(self) -> int:
         orig_path = os.getcwd()
         os.chdir(self.out_dir_path)
+
+        # Run the generated scheduler script
+        # Using subprocess.getoutput to capture stdout easily
         out = subprocess.getoutput(self.out_scheduler_path)
 
-        job_id = int(out.strip())
-        os.chdir(orig_path)
+        # Parse job ID (expecting integer output)
+        try:
+            job_id = int(out.strip())
+        except ValueError:
+            print(f"Warning: Could not parse job ID from output: '{out}'")
+            job_id = 0
 
+        os.chdir(orig_path)
         return job_id
 
     def submit_run(self, out_prefix="ABFE", cluster=True) -> int:

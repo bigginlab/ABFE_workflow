@@ -15,6 +15,11 @@ rule equil_setup_complex:
         gro=run_path+"/complex/topology/complex.gro"
     shell:
         '''
-            cp -r {params.complex_template} {params.sim_dir}/equil-mdsim
-            cp -r {input}/* {params.sim_dir}/topology
+            set -euo pipefail
+
+            mkdir -p {params.sim_dir}/equil-mdsim/emin
+            mkdir -p {params.sim_dir}/topology
+
+            cp -r {params.complex_template}/. {params.sim_dir}/equil-mdsim
+            cp -r {input}/. {params.sim_dir}/topology
         '''

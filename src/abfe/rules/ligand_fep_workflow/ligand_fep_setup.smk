@@ -14,7 +14,7 @@ rule fep_setup_ligand:
     params:
         sim_dir=run_path+"/ligand/fep",
         feptop_dir=run_path+"/ligand/fep/fep-topology",
-
+        dummy_mdp=run_path+"/ligand/equil-mdsim/npt_equil2/npt_equil2.mdp",
         vdw_windows=n_vdw_windows,
         vdw_range=" ".join(map(str, lam_vdw_range)),
         coul_windows=n_coul_windows,
@@ -37,11 +37,13 @@ rule fep_setup_ligand:
             mkdir -p {params.sim_dir}/fep-topology
             cp -r {params.template_dir}/template/* {params.sim_dir}/template
             cp -r {input.ligand_top}/* {params.sim_dir}/fep-topology
+            cp -r {params.dummy_mdp} {params.sim_dir}/fep-topology/dummy.mdp
             
             echo "center equil sim"
-            echo "0" | gmx trjconv -s {params.feptop_dir}/ligand.gro -f {input.equil_gro} -o {params.feptop_dir}/whole.gro -pbc whole
-            echo "0" | gmx trjconv -s {params.feptop_dir}/ligand.gro -f {params.feptop_dir}/whole.gro -o {params.feptop_dir}/nojump.gro -pbc nojump
-            echo "1 0" | gmx trjconv -s {params.feptop_dir}/ligand.gro -f {params.feptop_dir}/nojump.gro -o {output.fep_gro} -pbc mol -center -ur compact
+            gmx grompp -f {params.feptop_dir}/dummy.mdp -c {params.feptop_dir}/ligand.gro -p {params.feptop_dir}/ligand.top -o {params.feptop_dir}/ligand.tpr -maxwarn 1
+            echo "0" | gmx trjconv -s {params.feptop_dir}/ligand.tpr -f {input.equil_gro} -o {params.feptop_dir}/whole.gro -pbc whole
+            echo "0" | gmx trjconv -s {params.feptop_dir}/ligand.tpr -f {params.feptop_dir}/whole.gro -o {params.feptop_dir}/nojump.gro -pbc nojump
+            echo "1 0" | gmx trjconv -s {params.feptop_dir}/ligand.tpr -f {params.feptop_dir}/nojump.gro -o {output.fep_gro} -pbc mol -center -ur compact
             rm {params.feptop_dir}/whole.gro {params.feptop_dir}/nojump.gro
 
             

@@ -2,31 +2,35 @@
     "Snakemake_job": {
         "queue_submission_cmd": "sbatch",
         "queue_abort_cmd": "scancel",
-        "queue_status_script": "abfe_slurm_status",
         "queue_dependency": {
             "key": "dependency",
             "value": "afterok",
             "sep": ":"
         },
         "queue_job_options": {
-            "partition": "cpu",
-            "mem": "5000",
-            "cpus-per-task": 5
+            "partition": "gpu4-biggin",
+            "cpus-per-task": 8,
+            "ntasks-per-socket": 1,
+            "time": "24:00:00",
+            "gres": "gpu:1",
+            "gres-flags": "enforce-binding"
         }
     },
     "Sub_job": {
         "queue_submission_cmd": "sbatch",
         "queue_abort_cmd": "scancel",
-        "queue_status_script": "abfe_slurm_status",
         "queue_dependency": {
             "key": "dependency",
             "value": "afterok",
             "sep": ":"
         },
         "queue_job_options": {
-            "partition": "cpu",
-            "mem": "5000",
-            "cpus-per-task": 5
+            "partition": "gpu4-biggin",
+            "cpus-per-task": 8,
+            "ntasks-per-socket": 1,
+            "time": "24:00:00",
+            "gres": "gpu:1",
+            "gres-flags": "enforce-binding"
         }
     }
 }

@@ -1,24 +1,25 @@
-name: abfe
+name: abfe_bi_11dec
 channels:
   - bioconda
   - openbiosim
   - conda-forge
   - defaults
+
 dependencies:
   - python>=3.8
   - pip
   - conda-build
-  
+
   - snakemake=7.8.5
   - tabulate=0.8.10
-  
+
   - gromacs>=2022.2
 
   - matplotlib
   - numpy=1.22.4
   - scipy=1.7.3
   - pandas
-  
+
   - mdanalysis
   - parmed
   - pdbfixer
@@ -27,7 +28,7 @@ dependencies:
   - openff-interchange
 
   - pip:
-    - alchemlyb==2.0.0
-    - pymbar==4.0.1
-    - MDRestraintsGenerator
-
+      - alchemlyb==2.0.0
+      - pymbar==4.0.1
+      - MDRestraintsGenerator
+      - pint==0.23
