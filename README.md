@@ -1,6 +1,7 @@
 # ABFE_workflow
 [![build-package](https://github.com/bigginlab/ABFE_workflow/actions/workflows/build-package.yml/badge.svg)](https://github.com/bigginlab/ABFE_workflow/actions/workflows/build-package.yml)
 
+On this "JCIM" branch - bar a few fixes this is the code that was release alongside the publication.   Always check the main branch for the most upto date version.
 
 A snakemake based workflow for ABFE calculations using GMX. The workflow can be scaled on Slurm Queuing systems.
 Checkout our publication: [Ries, B; Alibay, I.; N. M. Anand; Magarkar, A.; Biggin, P. C. Automated Absolute Binding Free Energy Calculation Workflow for Drug Discovery. J. Chem. Inf. Model. 2024](https://doi.org/10.1021/acs.jcim.4c00343)
